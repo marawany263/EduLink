@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>EduLink - بوابة ولي الأمر</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="card" style="background: linear-gradient(135deg, #1e293b, #3b82f6); margin-bottom: 25px;">
+        <h2 id="studentName" style="color: white; margin: 0;">جاري تحميل اسم الطالب...</h2>
+        <p id="studentClass" style="color: #cbd5e1; margin-top: 5px;">الفصل: --</p>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3>⭐ التقييم العام للمدرسين</h3>
+            <h1 id="ratingStars" style="margin: 10px 0;">--</h1>
+            <div id="ratingText" class="badge">حساب المتوسط...</div>
+        </div>
+
+        <div class="card">
+            <h3>📅 غياب الشهر الحالي</h3>
+            <h1 id="absentCount" style="color: #ef4444; margin: 10px 0;">0 أيام</h1>
+            <div id="warningBadge" style="width: 100%;">فحص حالة الإنذارات...</div>
+        </div>
+
+        <div class="card">
+            <h3>📊 نسبة الحضور والغياب</h3>
+            <div class="pie-container" style="position: relative; height:150px; width:100%;">
+                <canvas id="attendancePieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 2fr 1fr;">
+        <div class="card">
+            <h3>📝 درجات الاختبارات الشهرية والمجموع</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المادة</th>
+                        <th>الدرجة</th>
+                    </tr>
+                </thead>
+                <tbody id="gradesTableBody">
+                    </tbody>
+                <tfoot>
+                    <tr style="font-weight: bold; background: #334155; color: white;">
+                        <td>المجموع الكلي للدرجات</td>
+                        <td id="totalGrades">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="card" style="margin-top: 25px; padding: 15px;">
+                <h3>📅 المخطط الزمني للتقييمات (Gantt Chart)</h3>
+                <div style="position: relative; height: 140px; width: 100%;">
+                    <canvas id="ganttChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🏆 لوحة الشرف التحفيزية (Top 5 بالفصل)</h3>
+            <ul id="top5List" style="padding-right: 20px; color: #1e3a8a; line-height: 2; font-weight: bold;">
+                </ul>
+            <hr>
+            <h3>⚠️ السجل السلوكي والمخالفات</h3>
+            <ul id="violationsList" style="color: #475569; padding-right: 20px; line-height: 1.8;">
+                <li>جاري جلب سجل المخالفات...</li>
+            </ul>
+        </div>
+    </div>
+
+    <script type="module" src="js/parent.js"></script>
+</body>
+</html>

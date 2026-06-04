@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>EduLink - لوحة الإدارة</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+    <h1>لوحة تحكم إدارة المدرسة (التحكم المركزي)</h1>
+    <hr>
+
+    <div class="grid">
+        <div class="card">
+            <h3>1. قيد طالب بالفصل (تأسيس تلقائي)</h3>
+            <input type="text" id="stuId" placeholder="كود الطالب (مثال: STU101)">
+            <input type="text" id="stuName" placeholder="اسم الطالب بالكامل">
+            <select id="stuClass">
+                <option value="1-A">فصل أولى أول (1-A)</option>
+                <option value="1-B">فصل أولى ثاني (1-B)</option>
+            </select>
+            <button id="addStudentBtn">حفظ البيانات وإنشاء الـ Collections</button>
+        </div>
+
+        <div class="admin-card">
+            <h3>➕ إضافة معلم جديد للنظام</h3>
+            <form id="addTeacherForm">
+                <div class="form-group">
+                    <label>اسم المعلم:</label>
+                    <input type="text" id="teacherName" placeholder="مثال: أستاذ محمد علي" required>
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني للمعلم:</label>
+                    <input type="email" id="teacherEmail" placeholder="مثال: teacher@edulink.com" required>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور المؤقتة:</label>
+                    <input type="password" id="teacherPassword" placeholder="لا تقل عن 6 أحرف أو أرقام" required>
+                </div>
+                <div class="form-group">
+                    <label>المادة الدراسية:</label>
+                    <input type="text" id="teacherSubject" placeholder="مثال: شبكات / برمجة" required>
+                </div>
+                <div class="form-group">
+                    <label>الفصل المسؤول عنه:</label>
+                    <input type="text" id="teacherClass" placeholder="مثال: 1/1" required>
+                </div>
+                <button type="submit" class="btn-submit">حفظ المعلم وتكريت الحساب</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>2. رصد الدرجات والمخالفات</h3>
+            <input type="text" id="targetStuId" placeholder="أدخل كود الطالب المستهدف">
+            <hr>
+            <h4>رصد درجة شهرية:</h4>
+            <select id="subject">
+                <option value="Math">رياضيات هندسية</option>
+                <option value="Programming">برمجة الويب</option>
+                <option value="Electronics">إلكترونيات فنية</option>
+            </select>
+            <input type="number" id="grade" placeholder="الدرجة">
+            <button id="saveGradeBtn">حفظ الدرجة</button>
+
+            <h4 style="margin-top: 15px;">رصد مخالفة سلوكية:</h4>
+            <input type="text" id="vTitle" placeholder="عنوان المخالفة">
+            <textarea id="vDetails" placeholder="تفاصيل الإجراء الإداري"></textarea>
+            <button id="saveViolationBtn" style="background: #ef4444;">تسجيل المخالفة فوراً</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>🏆 لوحة الشرف (أعلى 10 طلاب على مستوى الدفعة كلها)</h3>
+        <button id="getTop10Btn" style="background: #10b981; margin-bottom: 15px;">تحديث الترتيب اللحظي</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>الترتيب</th>
+                    <th>كود الطالب</th>
+                    <th>اسم الطالب</th>
+                    <th>المجموع الكلي</th>
+                </tr>
+            </thead>
+            <tbody id="top10TableBody"></tbody>
+        </table>
+    </div>
+
+    <script type="module" src="js/admin.js"></script>
+</body>
+
+</html>

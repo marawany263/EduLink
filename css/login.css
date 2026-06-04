@@ -1,0 +1,86 @@
+/* css/login.css */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* تم تعديلها لـ 100vh لتغطية الشاشة بالكامل */
+    background-color: #f1f5f9; /* خلفية الصفحة العامة: رمادي فاتح مائل للأزرق */
+}
+
+.login-card {
+    background: #ffffff; /* تحويل خلفية الكارت إلى الأبيض الناصع */
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); /* ظل خفيف جداً وناعم يعطي عمقاً احترافياً */
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid #e2e8f0; /* إطار خفيف جداً لتحديد الكارت */
+}
+
+/* تنسيق إضافي للعناوين (مثل إنشاء حساب أو تسجيل الدخول) لتظهر كحلي فخم */
+.login-card h1, .login-card h2 {
+    color: #1e3a8a;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.login-card p {
+    color: #64748b; /* رمادي هادئ وواضح للنصوص الفرعية */
+    margin-bottom: 20px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1; /* إطار رمادي فاتح متناسق */
+    background: #f8fafc; /* خلفية داخلية هادئة للخانة */
+    color: #0f172a; /* لون كتابة داكن وواضح جداً للقراءة */
+    box-sizing: border-box; /* تضمن عدم خروج الخانات عن أبعاد الكارت */
+    transition: all 0.3s ease;
+}
+
+/* لمسة جمالية: تأثير إضاءة أزرق خفيف عند الضغط داخل خانة الكتابة */
+input:focus {
+    outline: none;
+    border-color: #2563eb;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+/* تنسيق لون نص التلميح الداخلي (Placeholder) */
+input::placeholder {
+    color: #94a3b8;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: #2563eb; /* أزرق حيوي ونشط ممتاز للثيم الفاتح */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: 0.3s;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); /* ظل خفيف أسفل الزر */
+}
+
+button:hover {
+    background: #1d4ed8; /* درجة أزرق أغمق قليلاً عند تمرير الماوس */
+}
+
+/* تنسيق إضافي للروابط السفلية (مثل: تسجيل الدخول / لديك حساب؟) */
+.login-card a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.login-card a:hover {
+    text-decoration: underline;
+}

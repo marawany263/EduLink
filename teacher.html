@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>EduLink - بوابة المعلم</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <div class="card" style="background: linear-gradient(135deg, #0f172a, #1e3a8a); margin-bottom: 25px; color: white; padding: 20px;">
+        <h1 style="margin: 0; font-size: 24px;">بوابة المعلم للمتابعة والتقييم اللحظي</h1>
+        <p style="margin: 5px 0 0 0; color: #94a3b8;">رصد غياب الحصة وتقييم أداء الطلاب وإرسالها لولي الأمر فوراً</p>
+    </div>
+
+    <div class="card" style="margin-bottom: 20px;">
+        <h3 style="margin-top: 0;">📋 اختر الفصل لعرض القائمة من الإدارة:</h3>
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <select id="classSelect" style="width: 280px; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                <option value="">-- اختر الفصل المدرسي --</option>
+                <option value="1-A">فصل أولى أول (1-A)</option>
+                <option value="1-B">فصل أولى ثاني (1-B)</option>
+            </select>
+            <button id="loadClassBtn" style="background-color: #2563eb; color: white; padding: 10px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">عرض الطلاب</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📊 بيانات الحصة والطلاب</h3>
+        <p style="font-size: 14px; color: #475569;">التاريخ والوقت اللحظي: <span id="liveTime" style="color: #2563eb; font-weight: bold;">--:--</span></p>
+        
+        <table style="width: 100%; margin-top: 15px;">
+            <thead>
+                <tr>
+                    <th>كود الطالب</th>
+                    <th>الاسم</th>
+                    <th>رصد غياب اليوم</th>
+                    <th>تقييم الأداء بالنجوم (1-5)</th>
+                </tr>
+            </thead>
+            <tbody id="studentsTableBody">
+                <tr>
+                    <td colspan="4" style="text-align:center; color: #94a3b8; padding: 20px;">يرجى اختيار الفصل والضغط على عرض الطلاب...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="text-align: left; margin-top: 20px;">
+            <button id="saveSessionBtn" style="background-color: #10b981; color: white; padding: 12px 30px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px;">
+                💾 حفظ الحصة ورصد التقييمات فوراً
+            </button>
+        </div>
+    </div>
+
+    <script type="module" src="js/teacher.js"></script>
+</body>
+</html>

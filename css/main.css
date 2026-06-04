@@ -1,0 +1,27 @@
+/* css/main.css */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Cairo', sans-serif;
+}
+
+body {
+    background-color: #f8fafc; /* خلفية بيضاء مريحة */
+    color: #334155; /* خط غامق */
+    direction: rtl;
+    padding: 20px;
+}
+
+h1, h2, h3 {
+    color: #1e3a8a; /* أزرق ملكي مريح للعين */
+    margin-bottom: 15px;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #e2e8f0;
+    margin: 20px 0;
+}
