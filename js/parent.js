@@ -10,6 +10,36 @@ if (!currentStudentId) {
     window.location.href = "index.html";
 }
 
+// دالة احترافية لتوليد نجوم التقييم بدقة الكسور (ربع، نصف، إلخ) باستخدام SVG Gradients
+function generateStarsHtml(rating) {
+    let starsHtml = `<div style="display: flex; gap: 6px; justify-content: center; direction: ltr; margin: 10px 0;">`;
+    for (let i = 1; i <= 5; i++) {
+        if (rating >= i) {
+            // نجمة كاملة ممتلئة باللون الأصفر الدفء
+            starsHtml += `<svg width="28" height="28" viewBox="0 0 24 24"><path fill="#eab308" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+        } else if (rating > i - 1) {
+            // نجمة ممتلئة جزئياً بناءً على الكسر المتبقي (ربع، نص، إلخ)
+            const fillPercentage = Math.round((rating - (i - 1)) * 100);
+            const gradId = `star-grad-${fillPercentage}-${Math.random().toString(36).substring(2, 6)}`;
+            starsHtml += `
+            <svg width="28" height="28" viewBox="0 0 24 24">
+                <defs>
+                    <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="${fillPercentage}%" stop-color="#eab308" />
+                        <stop offset="${fillPercentage}%" stop-color="#cbd5e1" />
+                    </linearGradient>
+                </defs>
+                <path fill="url(#${gradId})" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>`;
+        } else {
+            // نجمة فارغة باللون الرمادي المحايد
+            starsHtml += `<svg width="28" height="28" viewBox="0 0 24 24"><path fill="#cbd5e1" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+        }
+    }
+    starsHtml += `</div>`;
+    return starsHtml;
+}
+
 // دالة تشغيل مراقبة لوحة تحكم ولي الأمر لحظياً
 function watchParentDashboard() {
     const docRef = doc(db, "students", currentStudentId);
@@ -30,30 +60,49 @@ function watchParentDashboard() {
         // حساب متوسط الـ Rating اللحظي من كل المدرسين
         const ratingsMap = data.ratings || {};
         const ratingKeys = Object.keys(ratingsMap);
-        let avgRating = 0;
         
-        if(ratingKeys.length > 0) {
-            let sum = 0;
-            ratingKeys.forEach(key => sum += ratingsMap[key]);
-            avgRating = (sum / ratingKeys.length).toFixed(1);
-        }
-
-        // عرض النجوم والنص حسب شروط الـ Capstone المحددة
         const ratingStarsEl = document.getElementById('ratingStars');
         const ratingTextEl = document.getElementById('ratingText');
         
-        if(avgRating <= 2.5) {
-            ratingStarsEl.innerText = "⭐";
-            ratingTextEl.className = "badge weak";
-            ratingTextEl.innerText = `ضعيف (${avgRating})`;
-        } else if(avgRating >= 2.6 && avgRating <= 3.5) {
-            ratingStarsEl.innerText = "⭐⭐⭐";
-            ratingTextEl.className = "badge average";
-            ratingTextEl.innerText = `متوسط (${avgRating})`;
+        if (ratingTextEl) ratingTextEl.style.backgroundColor = "";
+
+        if (ratingKeys.length === 0) {
+            // إذا لم يتم التقييم بعد من أي مدرس
+            if (ratingStarsEl) ratingStarsEl.innerText = "⏳"; 
+            if (ratingTextEl) {
+                ratingTextEl.className = "badge";
+                ratingTextEl.style.backgroundColor = "#64748b"; 
+                ratingTextEl.innerText = "لا يوجد أي تقييم لهذا الطالب حالياً";
+            }
         } else {
-            ratingStarsEl.innerText = "⭐⭐⭐⭐⭐";
-            ratingTextEl.className = "badge excellent";
-            ratingTextEl.innerText = `ممتاز (${avgRating})`;
+            // حساب المتوسط بدقة
+            let sum = 0;
+            ratingKeys.forEach(key => sum += ratingsMap[key]);
+            const avgRating = (sum / ratingKeys.length).toFixed(1);
+            const avgNum = Number(avgRating);
+
+            // استدعاء دالة رسم النجوم الذكية بالكسور
+            if (ratingStarsEl) {
+                ratingStarsEl.innerHTML = generateStarsHtml(avgNum);
+            }
+
+            // تطبيق الشروط على النصوص والـ Badges
+            if (avgNum <= 2.5) {
+                if (ratingTextEl) {
+                    ratingTextEl.className = "badge weak";
+                    ratingTextEl.innerText = `ضعيف (${avgRating})`;
+                }
+            } else if (avgNum >= 2.6 && avgNum <= 3.5) {
+                if (ratingTextEl) {
+                    ratingTextEl.className = "badge average";
+                    ratingTextEl.innerText = `متوسط (${avgRating})`;
+                }
+            } else {
+                if (ratingTextEl) {
+                    ratingTextEl.className = "badge excellent";
+                    ratingTextEl.innerText = `ممتاز (${avgRating})`;
+                }
+            }
         }
 
         // حساب غياب الشهر الحالي ومنطق الإنذارات التكرارية الآلي
@@ -131,7 +180,7 @@ function watchParentDashboard() {
         console.error("خطأ أثناء الاستماع لبيانات الطالب المعين:", error);
     });
 
-    // 2. الاستماع اللحظي للوحة الشرف العالمية (تتحدث لو درجات أي طالب تغيرت)
+    // 2. الاستماع اللحظي للوحة الشرف العالمية
     watchGlobalTop5();
 }
 
@@ -160,7 +209,7 @@ function renderAttendancePieChart(present, absent) {
     });
 }
 
-// دالة تشغيل الـ Gantt Chart الأفقي للترم
+// دالة تشغيل الـ Gantt Chart
 function renderGanttChart() {
     const ctx = document.getElementById('ganttChart')?.getContext('2d');
     if(!ctx) return;
@@ -195,14 +244,13 @@ function renderGanttChart() {
     });
 }
 
-// دالة جلب الـ Top 5 على مستوى المدرسة كلها بشكل لحظي ومستمر
+// دالة جلب الـ Top 5
 function watchGlobalTop5() {
     const top5ListEl = document.getElementById('top5List');
     if(!top5ListEl) return;
 
     const q = query(collection(db, "students"));
     
-    // استخدام onSnapshot لمراقبة قائمة الطلاب كلها ولحساب الترتيب أوتوماتيكياً
     onSnapshot(q, (querySnapshot) => {
         let studentList = [];
 
@@ -215,7 +263,6 @@ function watchGlobalTop5() {
             studentList.push({ name: d.name, total: sum });
         });
 
-        // ترتيب تنازلي
         studentList.sort((a, b) => b.total - a.total);
         const top5 = studentList.slice(0, 5);
 
@@ -233,5 +280,15 @@ function watchGlobalTop5() {
     });
 }
 
-// تشغيل الـ Real-time Listeners فور اكتمال تحميل الـ HTML
-window.addEventListener('DOMContentLoaded', watchParentDashboard);
+// تفعيل الـ Listeners وربط زرار تسجيل الخروج
+window.addEventListener('DOMContentLoaded', () => {
+    watchParentDashboard();
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('currentStudentId'); 
+            window.location.href = "index.html"; 
+        });
+    }
+});
