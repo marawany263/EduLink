@@ -11,7 +11,7 @@ let editingStudentId = null;
 // ==========================================
 // الإعدادات الخاصة بالـ Pagination وحجم الصفحة
 // ==========================================
-const PAGE_SIZE = 5; // عدد العناصر المعروضة في الصفحة الواحدة (تقدر تعدله لـ 10 أو 20 براحتك)
+const PAGE_SIZE = 5; // عدد العناصر المعروضة في الصفحة الواحدة
 
 // مؤشرات الصفحات للطلاب
 let studentFirstVisible = null;
@@ -33,6 +33,7 @@ function debounce(func, delay) {
         }, delay);
     };
 }
+
 // ==========================================
 // 0. دالات جلب وتحديث البيانات المشتركة (الفصول والمواد والـ Dropdowns)
 // ==========================================
@@ -123,10 +124,9 @@ async function loadAdminDynamicData() {
     }
 }
 
-
-// =========================================================================
+// ==========================================
 // 🌐 نظام جلب وعرض المعلمين المطور بالصفحات (Pagination) والبحث الكلي
-// =========================================================================
+// ==========================================
 async function loadTeachersData(navigationAction = "init") {
     const teachersTableBody = document.getElementById('teachersTableBody');
     if (!teachersTableBody) return;
@@ -134,12 +134,12 @@ async function loadTeachersData(navigationAction = "init") {
     try {
         teachersTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px; color:#94a3b8;">جاري تحميل المعلمين...</td></tr>';
 
-        const searchQuery = document.getElementById('searchTeacherInput').value.trim();
+        const searchTeacherInput = document.getElementById('searchTeacherInput');
+        const searchQuery = searchTeacherInput ? searchTeacherInput.value.trim() : "";
         let q;
 
         // بناء كويري الفايربيز الأساسية بناءً على ميزة التنقل والبحث
         if (searchQuery) {
-            // كويري الـ Prefix matching الذكي للبحث بالاسم
             q = query(
                 collection(db, "users"),
                 where("role", "==", "teacher"),
@@ -160,6 +160,7 @@ async function loadTeachersData(navigationAction = "init") {
         }
 
         const querySnapshot = await getDocs(q);
+        const teachersPageIndicator = document.getElementById('teachersPageIndicator');
 
         // التحقق من وجود بيانات
         if (querySnapshot.empty) {
@@ -169,7 +170,7 @@ async function loadTeachersData(navigationAction = "init") {
                 return;
             }
             teachersTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#94a3b8;">لا يوجد معلمون يطابقون البحث حالياً</td></tr>';
-            document.getElementById('teachersPageIndicator').innerText = `صفحة ${teacherPageNum}`;
+            if (teachersPageIndicator) teachersPageIndicator.innerText = `صفحة ${teacherPageNum}`;
             return;
         }
 
@@ -180,7 +181,7 @@ async function loadTeachersData(navigationAction = "init") {
         // تحديث رقم الصفحة الظاهري
         if (navigationAction === "next") teacherPageNum++;
         if (navigationAction === "prev") teacherPageNum = Math.max(1, teacherPageNum - 1);
-        document.getElementById('teachersPageIndicator').innerText = `صفحة ${teacherPageNum}`;
+        if (teachersPageIndicator) teachersPageIndicator.innerText = `صفحة ${teacherPageNum}`;
 
         teachersTableBody.innerHTML = "";
         querySnapshot.forEach(docSnap => {
@@ -220,10 +221,9 @@ async function loadTeachersData(navigationAction = "init") {
     }
 }
 
-
-// =========================================================================
+// ==========================================
 // 🌐 نظام جلب وعرض الطلاب المطور بالصفحات (Pagination) والفلترة والبحث بالاسم
-// =========================================================================
+// ==========================================
 async function loadStudentsData(navigationAction = "init") {
     const tbody = document.getElementById('studentsTableBody');
     if (!tbody) return;
@@ -231,8 +231,11 @@ async function loadStudentsData(navigationAction = "init") {
     try {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8;">جاري تحميل كشف الطلاب...</td></tr>';
 
-        const className = document.getElementById('filterStuClass').value;
-        const searchQuery = document.getElementById('searchStudentInput').value.trim();
+        const filterStuClass = document.getElementById('filterStuClass');
+        const searchStudentInput = document.getElementById('searchStudentInput');
+        
+        const className = filterStuClass ? filterStuClass.value : "";
+        const searchQuery = searchStudentInput ? searchStudentInput.value.trim() : "";
 
         let qConstraints = [orderBy("name")];
 
@@ -265,6 +268,7 @@ async function loadStudentsData(navigationAction = "init") {
 
         const q = query(collection(db, "students"), ...qConstraints);
         const querySnapshot = await getDocs(q);
+        const studentsPageIndicator = document.getElementById('studentsPageIndicator');
 
         if (querySnapshot.empty) {
             if (navigationAction === "next") {
@@ -272,7 +276,7 @@ async function loadStudentsData(navigationAction = "init") {
                 return;
             }
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8; font-weight: 600;">لا يوجد طلاب يطابقون المعايير المحددة حالياً</td></tr>';
-            document.getElementById('studentsPageIndicator').innerText = `صفحة ${studentPageNum}`;
+            if (studentsPageIndicator) studentsPageIndicator.innerText = `صفحة ${studentPageNum}`;
             return;
         }
 
@@ -281,7 +285,7 @@ async function loadStudentsData(navigationAction = "init") {
 
         if (navigationAction === "next") studentPageNum++;
         if (navigationAction === "prev") studentPageNum = Math.max(1, studentPageNum - 1);
-        document.getElementById('studentsPageIndicator').innerText = `صفحة ${studentPageNum}`;
+        if (studentsPageIndicator) studentsPageIndicator.innerText = `صفحة ${studentPageNum}`;
 
         tbody.innerHTML = "";
         querySnapshot.forEach(docSnap => {
@@ -316,12 +320,18 @@ async function loadStudentsData(navigationAction = "init") {
     }
 }
 
-
 // ==========================================
 // تشغيل وفحص المستمعين فور تحميل الصفحة بالكامل
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. تحميل قائمة المواد والفصول الديناميكية أولاً
     loadAdminDynamicData();
+    
+    // 🔥 2. جلب البيانات الأساسية للجداول فوراً عند فتح الصفحة
+    loadTeachersData("init");
+    loadStudentsData("init");
+
+    // إعداد الـ Debounce للبحث الحي
     const liveTeacherSearch = debounce(() => {
         loadTeachersData("init");
     }, 400);
@@ -343,7 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('nextTeachersBtn')?.addEventListener('click', () => loadTeachersData("next"));
     document.getElementById('prevTeachersBtn')?.addEventListener('click', () => loadTeachersData("prev"));
 });
-
 
 // ==========================================
 // لوجيك مراقبة الإجراءات والتعديلات داخل جدول الطلاب (CRUD)
@@ -388,7 +397,6 @@ function setupStudentsTableActions() {
         }
     });
 }
-
 
 // ==========================================
 // لوجيك مراقبة الإجراءات والتعديلات داخل جدول المعلمين (CRUD)
@@ -450,7 +458,6 @@ function setupTeachersTableActions() {
     });
 }
 
-
 // ==========================================
 // حفظ الفصول والمواد الجديدة
 // ==========================================
@@ -477,7 +484,6 @@ document.getElementById('addSubjectBtn')?.addEventListener('click', async () => 
         await loadAdminDynamicData();
     } catch (e) { alert("خطأ أثناء حفظ المادة: " + e.message); }
 });
-
 
 // ==========================================
 // 1. إضافة طالب جديد أو تحديث بياناته
@@ -540,7 +546,6 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
         loadStudentsData("init");
     } catch (error) { alert("❌ فشل الحفظ: " + error.message); }
 });
-
 
 // ==========================================
 // 2. إضافة أو تحديث معلم بالـ Auth
@@ -615,7 +620,6 @@ if (addTeacherForm) {
     });
 }
 
-
 // ==========================================
 // 3. رصد الدرجات لولي الأمر
 // ==========================================
@@ -635,7 +639,6 @@ document.getElementById('saveGradeBtn')?.addEventListener('click', async () => {
         gradeInput.value = "";
     } catch (e) { alert("خطأ: " + e.message); }
 });
-
 
 // ==========================================
 // 4. تسجيل مخالفة سلوكية
@@ -661,7 +664,6 @@ document.getElementById('saveViolationBtn')?.addEventListener('click', async () 
     } catch (e) { alert("خطأ: " + e.message); }
 });
 
-
 // ==========================================
 // 5. احتساب أعلى 10 طلاب
 // ==========================================
@@ -678,9 +680,11 @@ document.getElementById('getTop10Btn')?.addEventListener('click', async () => {
         studentList.sort((a, b) => b.total - a.total);
         const top10 = studentList.slice(0, 10);
         const tbody = document.getElementById('top10TableBody');
-        tbody.innerHTML = "";
-        top10.forEach((stu, idx) => {
-            tbody.innerHTML += `<tr><td>${idx + 1}</td><td>${stu.id}</td><td>${stu.name}</td><td>${stu.total} درجة</td></tr>`;
-        });
+        if (tbody) {
+            tbody.innerHTML = "";
+            top10.forEach((stu, idx) => {
+                tbody.innerHTML += `<tr><td>${idx + 1}</td><td>${stu.id}</td><td>${stu.name}</td><td>${stu.total} درجة</td></tr>`;
+            });
+        }
     } catch (e) { alert("خطأ في جلب الدفعة: " + e.message); }
 });
