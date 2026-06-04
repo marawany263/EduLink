@@ -1,5 +1,5 @@
 // js/admin.js
-import { db, firebaseConfig } from "./firebase-config.js"; 
+import { db, firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, setDoc, updateDoc, arrayUnion, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -37,27 +37,29 @@ async function loadAdminDynamicData() {
             });
         }
 
-        // 3. حقن الفصول كـ Checkboxes متعددة لإضافة معلم
+        // 3. حقن الفصول كـ كروت أنيقة لإضافة معلم (محدثة لمنع التداخل)
         const teacherClassesContainer = document.getElementById('teacherClassesContainer');
         if (teacherClassesContainer) {
-            teacherClassesContainer.innerHTML = classesList.length === 0 ? '<span style="color:#94a3b8; font-size:13px;">⚠️ لا توجد فصول، أضف فصولاً من الأعلى أولاً</span>' : '';
+            teacherClassesContainer.innerHTML = classesList.length === 0 ? '<span style="color:#94a3b8; font-size:13px; grid-column: 1/-1;">⚠️ لا توجد فصول، أضف فصولاً من الأعلى أولاً</span>' : '';
             classesList.forEach(cls => {
                 teacherClassesContainer.innerHTML += `
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#334155;">
-                        <input type="checkbox" name="teacherClasses" value="${cls}" style="accent-color:#2563eb; transform:scale(1.1); cursor:pointer;"> فصل ${cls}
+                    <label style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 12px !important; background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.2s !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important; user-select: none !important; width: 100% !important; box-sizing: border-box !important; direction: rtl !important; float: none !important;">
+                        <input type="checkbox" name="teacherClasses" value="${cls}" style="accent-color: #2563eb !important; transform: scale(1.2) !important; margin: 0 !important; float: none !important; cursor: pointer !important; min-width: 16px !important; min-height: 16px !important;">
+                        <span style="font-size: 13.5px !important; font-weight: 600 !important; color: #334155 !important; white-space: nowrap !important; float: none !important; margin: 0 !important; line-height: 1 !important;">فصل ${cls}</span>
                     </label>
                 `;
             });
         }
 
-        // 4. حقن المواد كـ Checkboxes متعددة لإضافة معلم
+        // 4. حقن المواد كـ كروت أنيقة لإضافة معلم (محدثة لمنع التداخل)
         const teacherSubjectsContainer = document.getElementById('teacherSubjectsContainer');
         if (teacherSubjectsContainer) {
-            teacherSubjectsContainer.innerHTML = subjectsList.length === 0 ? '<span style="color:#94a3b8; font-size:13px;">⚠️ لا توجد مواد، أضف مواداً من الأعلى أولاً</span>' : '';
+            teacherSubjectsContainer.innerHTML = subjectsList.length === 0 ? '<span style="color:#94a3b8; font-size:13px; grid-column: 1/-1;">⚠️ لا توجد مواد، أضف مواداً من الأعلى أولاً</span>' : '';
             subjectsList.forEach(sub => {
                 teacherSubjectsContainer.innerHTML += `
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#334155;">
-                        <input type="checkbox" name="teacherSubjects" value="${sub}" style="accent-color:#2563eb; transform:scale(1.1); cursor:pointer;"> ${sub}
+                    <label style="display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 12px !important; background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.2s !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important; user-select: none !important; width: 100% !important; box-sizing: border-box !important; direction: rtl !important; float: none !important;">
+                        <input type="checkbox" name="teacherSubjects" value="${sub}" style="accent-color: #2563eb !important; transform: scale(1.2) !important; margin: 0 !important; float: none !important; cursor: pointer !important; min-width: 16px !important; min-height: 16px !important;">
+                        <span style="font-size: 13.5px !important; font-weight: 600 !important; color: #334155 !important; white-space: nowrap !important; float: none !important; margin: 0 !important; line-height: 1 !important;">${sub}</span>
                     </label>
                 `;
             });
@@ -156,7 +158,7 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
     const nameInput = document.getElementById('stuName');
     const classInput = document.getElementById('stuClass');
 
-    if(!idInput.value || !nameInput.value || !classInput.value) return alert("برجاء إدخال البيانات كاملة وتحديد الفصل");
+    if (!idInput.value || !nameInput.value || !classInput.value) return alert("برجاء إدخال البيانات كاملة وتحديد الفصل");
 
     try {
         await setDoc(doc(db, "students", idInput.value), {
@@ -172,7 +174,7 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
         alert("🎉 عظَمة! تم حفظ الطالب في الفايربيز وتأسيس الـ Collection بنجاح!");
         idInput.value = "";
         nameInput.value = "";
-        
+
     } catch (error) {
         alert("❌ الفايربيز رفض الحفظ! نص الخطأ: " + error.message);
     }
@@ -186,12 +188,12 @@ const addTeacherForm = document.getElementById('addTeacherForm');
 
 if (addTeacherForm) {
     addTeacherForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
 
         const tName = document.getElementById('teacherName').value.trim();
         const tEmail = document.getElementById('teacherEmail').value.trim();
         const tPassword = document.getElementById('teacherPassword').value.trim();
-        
+
         // تجميع الاختيارات المتعددة من الـ Checkboxes
         const checkedClasses = document.querySelectorAll('input[name="teacherClasses"]:checked');
         const checkedSubjects = document.querySelectorAll('input[name="teacherSubjects"]:checked');
@@ -218,13 +220,13 @@ if (addTeacherForm) {
                 email: tEmail,
                 subject: tSubjectsArray, // مصفوفة المواد
                 class: tClassesArray,   // مصفوفة الفصول
-                role: "teacher" 
+                role: "teacher"
             });
 
             await secondaryAuth.signOut();
 
             alert(`✅ تم تسجيل المعلم (${tName}) وتكريت حسابه بنجاح!`);
-            addTeacherForm.reset(); 
+            addTeacherForm.reset();
             await loadAdminDynamicData(); // تحديث فوري لجدول المعلمين تحت
 
         } catch (error) {
@@ -246,18 +248,18 @@ document.getElementById('saveGradeBtn')?.addEventListener('click', async () => {
     const subInput = document.getElementById('subject');
     const gradeInput = document.getElementById('grade');
 
-    if(!idInput.value || !subInput.value || !gradeInput.value) return alert("برجاء تحديد كود الطالب، المادة والدرجة");
+    if (!idInput.value || !subInput.value || !gradeInput.value) return alert("برجاء تحديد كود الطالب، المادة والدرجة");
 
     try {
         const gradeVal = parseFloat(gradeInput.value);
         const updateData = {};
         updateData[`grades.${subInput.value}`] = gradeVal;
-        
+
         await updateDoc(doc(db, "students", idInput.value), updateData);
         alert("تم رصد الدرجة بنجاح!");
         gradeInput.value = "";
-        
-    } catch(e) { alert("خطأ: " + e.message); }
+
+    } catch (e) { alert("خطأ: " + e.message); }
 });
 
 
@@ -269,22 +271,22 @@ document.getElementById('saveViolationBtn')?.addEventListener('click', async () 
     const titleInput = document.getElementById('vTitle');
     const detailsInput = document.getElementById('vDetails');
 
-    if(!idInput.value || !titleInput.value) return alert("برجاء إدخال كود الطالب وعنوان المخالفة");
+    if (!idInput.value || !titleInput.value) return alert("برجاء إدخال كود الطالب وعنوان المخالفة");
 
     try {
         await updateDoc(doc(db, "students", idInput.value), {
-            violations: arrayUnion({ 
-                title: titleInput.value, 
-                details: detailsInput.value, 
-                date: new Date().toLocaleDateString() 
+            violations: arrayUnion({
+                title: titleInput.value,
+                details: detailsInput.value,
+                date: new Date().toLocaleDateString()
             })
         });
         alert("تم تسجيل المخالفة بنجاح!");
         titleInput.value = "";
         detailsInput.value = "";
-        idInput.value = ""; 
-        
-    } catch(e) { alert("خطأ: " + e.message); }
+        idInput.value = "";
+
+    } catch (e) { alert("خطأ: " + e.message); }
 });
 
 
@@ -308,5 +310,5 @@ document.getElementById('getTop10Btn')?.addEventListener('click', async () => {
         top10.forEach((stu, idx) => {
             tbody.innerHTML += `<tr><td>${idx + 1}</td><td>${stu.id}</td><td>${stu.name}</td><td>${stu.total} درجة</td></tr>`;
         });
-    } catch(e) { alert("خطأ في جلب الدفعة: " + e.message); }
+    } catch (e) { alert("خطأ في جلب الدفعة: " + e.message); }
 });

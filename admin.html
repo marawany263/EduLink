@@ -12,18 +12,27 @@
     <h1>لوحة تحكم إدارة المدرسة (التحكم المركزي)</h1>
     <hr>
 
-    <div class="card" style="background: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px;">
+    <div class="card"
+        style="background: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px;">
         <h3 style="margin-top: 0; color: #1e3a8a;">⚙️ إدارة الفصول والمواد الدراسية بالمنصة</h3>
         <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 280px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div
+                style="flex: 1; min-width: 280px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <h4 style="margin-top: 0; color: #334155;">➕ إضافة فصل جديد للنظام:</h4>
-                <input type="text" id="newClassName" placeholder="مثال: 1-A أو 1-B أو شبكات-1" style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
-                <button id="addClassBtn" style="background: #2563eb; color: white; width: 100%; padding: 11px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">حفظ وتثبيت الفصل</button>
+                <input type="text" id="newClassName" placeholder="مثال: 1-A أو 1-B أو شبكات-1"
+                    style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+                <button id="addClassBtn"
+                    style="background: #2563eb; color: white; width: 100%; padding: 11px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">حفظ
+                    وتثبيت الفصل</button>
             </div>
-            <div style="flex: 1; min-width: 280px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div
+                style="flex: 1; min-width: 280px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <h4 style="margin-top: 0; color: #334155;">➕ إضافة مادة جديدة للنظام:</h4>
-                <input type="text" id="newSubjectName" placeholder="مثال: شبكات / برمجة الويب / دين" style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
-                <button id="addSubjectBtn" style="background: #2563eb; color: white; width: 100%; padding: 11px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">حفظ وتثبيت المادة</button>
+                <input type="text" id="newSubjectName" placeholder="مثال: شبكات / برمجة الويب / دين"
+                    style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+                <button id="addSubjectBtn"
+                    style="background: #2563eb; color: white; width: 100%; padding: 11px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">حفظ
+                    وتثبيت المادة</button>
             </div>
         </div>
     </div>
@@ -33,7 +42,8 @@
             <h3>1. قيد طالب بالفصل (تأسيس تلقائي)</h3>
             <input type="text" id="stuId" placeholder="كود الطالب (مثال: STU101)">
             <input type="text" id="stuName" placeholder="اسم الطالب بالكامل">
-            <select id="stuClass" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: 'Cairo';">
+            <select id="stuClass"
+                style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: 'Cairo';">
                 <option value="">-- جاري تحميل الفصول المتاحة... --</option>
             </select>
             <button id="addStudentBtn">حفظ البيانات وإنشاء الـ Collections</button>
@@ -54,19 +64,23 @@
                     <label>كلمة المرور المؤقتة:</label>
                     <input type="password" id="teacherPassword" placeholder="لا تقل عن 6 أحرف أو أرقام" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label style="font-weight: bold; color: #1e293b; display: block; margin-bottom: 5px;">المواد الدراسية (اختر مادة أو أكثر):</label>
-                    <div id="teacherSubjectsContainer" style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1; max-height: 130px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
-                        </div>
+                    <label style="font-weight: bold; color: #1e293b; display: block; margin-bottom: 8px;">المواد
+                        الدراسية (اختر مادة أو أكثر):</label>
+                    <div id="teacherSubjectsContainer"
+                        style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; max-height: 180px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; box-sizing: border-box;">
+                    </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label style="font-weight: bold; color: #1e293b; display: block; margin-bottom: 5px;">الفصول المسؤولة عنها (اختر فصل أو أكثر):</label>
-                    <div id="teacherClassesContainer" style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1; max-height: 130px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
-                        </div>
+                    <label style="font-weight: bold; color: #1e293b; display: block; margin-bottom: 8px;">الفصول المسؤول
+                        عنها (اختر فصل أو أكثر):</label>
+                    <div id="teacherClassesContainer"
+                        style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; max-height: 180px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; box-sizing: border-box;">
+                    </div>
                 </div>
-                
+
                 <button type="submit" class="btn-submit">حفظ المعلم وتسجيل الحساب</button>
             </form>
         </div>
@@ -76,7 +90,8 @@
             <input type="text" id="targetStuId" placeholder="أدخل كود الطالب المستهدف">
             <hr>
             <h4>رصد درجة شهرية:</h4>
-            <select id="subject" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: 'Cairo';">
+            <select id="subject"
+                style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: 'Cairo';">
                 <option value="">-- جاري تحميل المواد المتاحة... --</option>
             </select>
             <input type="number" id="grade" placeholder="الدرجة">
@@ -119,7 +134,10 @@
                         </tr>
                     </thead>
                     <tbody id="teachersTableBody">
-                        <tr><td colspan="4" style="text-align:center; padding: 20px; color:#94a3b8;">جاري تحميل المعلمين...</td></tr>
+                        <tr>
+                            <td colspan="4" style="text-align:center; padding: 20px; color:#94a3b8;">جاري تحميل
+                                المعلمين...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -135,7 +153,9 @@
                         </tr>
                     </thead>
                     <tbody id="subjectsTableBody">
-                        <tr><td style="text-align:center; padding: 20px; color:#94a3b8;">جاري تحميل المواد...</td></tr>
+                        <tr>
+                            <td style="text-align:center; padding: 20px; color:#94a3b8;">جاري تحميل المواد...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
