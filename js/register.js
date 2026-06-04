@@ -3,41 +3,80 @@ import { auth, db } from "./firebase-config.js";
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-document.getElementById('registerBtn')?.addEventListener('click', async () => {
-    const name = document.getElementById('parentName').value;
-    const email = document.getElementById('parentEmail').value;
-    const password = document.getElementById('parentPassword').value;
-    const studentId = document.getElementById('studentIdInput').value;
+// ✨ دالة إظهار التوستر الاحترافي بديل الـ alert التقليدي
+function showToast(message, type = "success") {
+    const container = document.getElementById("toastContainer");
+    if (!container) return;
 
+    // إنشاء عنصر التوستر
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerText = message;
+
+    // إضافة التوستر داخل الحاوية
+    container.appendChild(toast);
+
+    // حذف التوستر تلقائياً من الـ DOM بعد انتهاء الأنيميشن (4 ثوانٍ)
+    setTimeout(() => {
+        toast.remove();
+    }, 4000);
+}
+
+// 🌐 قاموس ترجمة أخطاء الفايربيز للغة العربية
+const firebaseErrorsArabic = {
+    "auth/email-already-in-use": "هذا البريد الإلكتروني مسجل بالفعل بالنظام!",
+    "auth/invalid-email": "صيغة البريد الإلكتروني غير صحيحة.",
+    "auth/weak-password": "كلمة المرور ضعيفة جداً، يجب ألا تقل عن 6 رموز.",
+    "auth/network-request-failed": "فشل الاتصال بالشبكة، تحقق من الإنترنت لديك."
+};
+
+document.getElementById('registerBtn')?.addEventListener('click', async () => {
+    const name = document.getElementById('parentName').value.trim();
+    const email = document.getElementById('parentEmail').value.trim();
+    const password = document.getElementById('parentPassword').value;
+    const studentId = document.getElementById('studentIdInput').value.trim();
+
+    // 1️⃣ التحقق من الحقول الفارغة
     if(!name || !email || !password || !studentId) {
-        return alert("برجاء ملء جميع الخانات المتاحة");
+        return showToast("⚠️ برجاء ملء جميع الخانات المتاحة لتسجيل الحساب", "error");
     }
 
     try {
-        // 🔥 الخطوة الأهم: التحقق من أن كود الطالب موجود أصلًا في السيستم ومرفوع من الإدارة
+        // 2️⃣ التحقق من أن كود الطالب موجود أصلًا في السيستم ومرفوع من الإدارة
         const studentDocRef = doc(db, "students", studentId);
         const studentSnap = await getDoc(studentDocRef);
 
         if(!studentSnap.exists()) {
-            return alert("❌ خطأ: كود الطالب هذا غير مسجل في قاعدة بيانات المدرسة! راجع الإدارة.");
+            return showToast("❌ كود الطالب هذا غير مسجل بالمدرسة! راجع الإدارة.", "error");
         }
 
-        // لو الكود صح وموجود.. نكريت الحساب لولي الأمر
+        // 3️⃣ إنشاء الحساب في Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // إنشاء مستند لولي الأمر في كولكشن users ونربطه بكود ابنه
+        // 4️⃣ إنشاء مستند لولي الأمر في كولكشن users ونربطه بكود ابنه
         await setDoc(doc(db, "users", user.uid), {
             parentName: name,
             email: email,
             role: "parent",
-            studentId: studentId // الربط السحري هنا 🔗
+            studentId: studentId // الربط السحري 🔗
         });
 
-        alert("🎉 تم إنشاء الحساب بنجاح وربطه ببيانات الطالب: " + studentSnap.data().name);
-        window.location.href = "index.html"; // توجيهه لصفحة اللوجن
+        // 5️⃣ إظهار رسالة النجاح الشيك
+        showToast(`🎉 تم إنشاء الحساب بنجاح وربطه بالطالب: ${studentSnap.data().name}`, "success");
+
+        // ⏳ تأخير التوجيه لثانيتين عشان يلحق يشوف التوستر الأخضر الجميل وهو بيظهر!
+        setTimeout(() => {
+            window.location.href = "login.html"; // التوجيه لصفحة تسجيل الدخول
+        }, 2500);
 
     } catch(error) {
-        alert("خطأ في التسجيل: " + error.message);
+        console.error("Registration Error: ", error);
+        
+        // فحص كود الخطأ وعرض الترجمة العربية له، أو عرض الخطأ الأصلي لو مش في القاموس
+        const errorCode = error.code;
+        const arabicMessage = firebaseErrorsArabic[errorCode] || `خطأ في التسجيل: ${error.message}`;
+        
+        showToast(arabicMessage, "error");
     }
 });

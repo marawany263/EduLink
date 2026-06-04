@@ -1,7 +1,7 @@
 // js/admin.js
 import { db, firebaseConfig } from "./firebase-config.js";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword,signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, setDoc, updateDoc, arrayUnion, collection, getDocs, deleteDoc, getDoc, query, where, limit, startAfter, endBefore, limitToLast, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // متغيرات عالمية لمتابعة حالات التعديل
@@ -22,6 +22,22 @@ let studentPageNum = 1;
 let teacherFirstVisible = null;
 let teacherLastVisible = null;
 let teacherPageNum = 1;
+
+// ==========================================
+// دالة التوستر (Notifications) الاحترافية بدلاً من الـ Alert
+// ==========================================
+function showToast(message, type = "success") {
+    // إذا كان عندك دالة جاهزة في الـ UI لتشغيل التوستر، ضعها هنا.
+    // كمثال متوافق مع نظامك الشيك:
+    const toaster = document.getElementById('toast-container'); // أو الـ ID الخاص بك
+    if (toaster) {
+        // لوجيك إظهار التوستر الخاص بك
+        console.log(`[${type.toUpperCase()}] ${message}`);
+    } else {
+        // حماية تضمن ظهور الرسالة للمستخدم في كل الأحوال حتى لو التوستر مش جاهز
+        alert(`${type === "success" ? "✅" : "⚠️"} ${message}`);
+    }
+}
 
 // دالة الـ Debouncing الذكية لمنع استهلاك كوتة السيرفر أثناء الكتابة الحية
 function debounce(func, delay) {
@@ -165,7 +181,7 @@ async function loadTeachersData(navigationAction = "init") {
         // التحقق من وجود بيانات
         if (querySnapshot.empty) {
             if (navigationAction === "next") {
-                alert("⚠️ لا توجد صفحات تالية");
+                showToast("⚠️ لا توجد صفحات تالية", "error");
                 loadTeachersData("init");
                 return;
             }
@@ -272,7 +288,7 @@ async function loadStudentsData(navigationAction = "init") {
 
         if (querySnapshot.empty) {
             if (navigationAction === "next") {
-                alert("⚠️ لا توجد صفحات تالية");
+                showToast("⚠️ لا توجد صفحات تالية", "error");
                 return;
             }
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8; font-weight: 600;">لا يوجد طلاب يطابقون المعايير المحددة حالياً</td></tr>';
@@ -354,6 +370,28 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('prevTeachersBtn')?.addEventListener('click', () => loadTeachersData("prev"));
 });
 
+
+// ==========================================
+    // 🚪 تسجيل الخروج العودة لصفحة الـ Login
+    // ==========================================
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        if (confirm("هل أنت متأكد من رغبتك في تسجيل الخروج؟")) {
+            try {
+                const mainAuth = getAuth(); // جلب نسخة الـ Auth الأساسية للآدمين
+                await signOut(mainAuth);
+                
+                showToast("تم تسجيل الخروج بنجاح، جاري توجيهك...", "success");
+                
+                // توجيه المستخدم لصفحة تسجيل الدخول بعد ثانية ونصف
+                setTimeout(() => {
+                    window.location.href = "login.html"; 
+                }, 1500);
+                
+            } catch (error) {
+                showToast("❌ خطأ أثناء تسجيل الخروج: " + error.message, "error");
+            }
+        }
+    });
 // ==========================================
 // لوجيك مراقبة الإجراءات والتعديلات داخل جدول الطلاب (CRUD)
 // ==========================================
@@ -388,10 +426,10 @@ function setupStudentsTableActions() {
             if (confirm(`⚠️ هل أنت متأكد تماماً من حذف الطالب (${stuName}) نهائياً؟ سيتم مسح ملفه السلوكي ودرجاته بالكامل!`)) {
                 try {
                     await deleteDoc(doc(db, "students", stuId));
-                    alert(`✅ تم مسح سجلات الطالب (${stuName}) بنجاح!`);
+                    showToast(`✅ تم مسح سجلات الطالب (${stuName}) بنجاح!`);
                     loadStudentsData("init");
                 } catch (error) {
-                    alert("❌ فشل الحذف: " + error.message);
+                    showToast("❌ فشل الحذف: " + error.message, "error");
                 }
             }
         }
@@ -448,10 +486,10 @@ function setupTeachersTableActions() {
             if (confirm(`⚠️ هل أنت متأكد تماماً من حذف المعلم (${teacherName}) نهائياً من السيستم؟`)) {
                 try {
                     await deleteDoc(doc(db, "users", teacherId));
-                    alert(`✅ تم حذف المعلم (${teacherName}) بنجاح!`);
+                    showToast(`✅ تم حذف المعلم (${teacherName}) بنجاح!`);
                     loadTeachersData("init");
                 } catch (error) {
-                    alert("❌ فشل الحذف: " + error.message);
+                    showToast("❌ فشل الحذف: " + error.message, "error");
                 }
             }
         }
@@ -464,25 +502,25 @@ function setupTeachersTableActions() {
 document.getElementById('addClassBtn')?.addEventListener('click', async () => {
     const classInput = document.getElementById('newClassName');
     const className = classInput.value.trim();
-    if (!className) return alert("برجاء إدخال اسم الفصل أولاً");
+    if (!className) return showToast("برجاء إدخال اسم الفصل أولاً", "error");
     try {
         await setDoc(doc(db, "classes", className), { name: className });
-        alert(`🎉 تم تثبيت الفصل (${className}) بنجاح!`);
+        showToast(`🎉 تم تثبيت الفصل (${className}) بنجاح!`);
         classInput.value = "";
         await loadAdminDynamicData();
-    } catch (e) { alert("خطأ أثناء حفظ الفصل: " + e.message); }
+    } catch (e) { showToast("خطأ أثناء حفظ الفصل: " + e.message, "error"); }
 });
 
 document.getElementById('addSubjectBtn')?.addEventListener('click', async () => {
     const subjectInput = document.getElementById('newSubjectName');
     const subjectName = subjectInput.value.trim();
-    if (!subjectName) return alert("برجاء إدخال اسم المادة أولاً");
+    if (!subjectName) return showToast("برجاء إدخال اسم المادة أولاً", "error");
     try {
         await setDoc(doc(db, "subjects", subjectName), { name: subjectName });
-        alert(`🎉 تم تثبيت المادة (${subjectName}) بنجاح!`);
+        showToast(`🎉 تم تثبيت المادة (${subjectName}) بنجاح!`);
         subjectInput.value = "";
         await loadAdminDynamicData();
-    } catch (e) { alert("خطأ أثناء حفظ المادة: " + e.message); }
+    } catch (e) { showToast("خطأ أثناء حفظ المادة: " + e.message, "error"); }
 });
 
 // ==========================================
@@ -493,7 +531,7 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
     const nameInput = document.getElementById('stuName');
     const classInput = document.getElementById('stuClass');
 
-    if (!idInput.value || !nameInput.value || !classInput.value) return alert("برجاء إدخال البيانات كاملة وتحديد الفصل");
+    if (!idInput.value || !nameInput.value || !classInput.value) return showToast("برجاء إدخال البيانات كاملة وتحديد الفصل", "error");
 
     const targetId = idInput.value.trim();
     const targetName = nameInput.value.trim();
@@ -505,7 +543,7 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
                 name: targetName,
                 class: targetClass
             });
-            alert(`🎉 تم تحديث بيانات الطالب بنجاح!`);
+            showToast(`🎉 تم تحديث بيانات الطالب بنجاح!`);
 
             editingStudentId = null;
             idInput.disabled = false;
@@ -519,14 +557,14 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
                 submitBtn.style.background = "";
             }
             loadStudentsData("init");
-        } catch (error) { alert("❌ خطأ في السيرفر أثناء التعديل: " + error.message); }
+        } catch (error) { showToast("❌ خطأ في السيرفر أثناء التعديل: " + error.message, "error"); }
         return;
     }
 
     try {
         const docSnap = await getDoc(doc(db, "students", targetId));
         if (docSnap.exists()) {
-            return alert(`⚠️ كود الطالب (${targetId}) مسجل مسبقاً باسم طالب آخر يدعى (${docSnap.data().name})!`);
+            return showToast(`⚠️ كود الطالب (${targetId}) مسجل مسبقاً باسم طالب آخر يدعى (${docSnap.data().name})!`, "error");
         }
 
         await setDoc(doc(db, "students", targetId), {
@@ -539,16 +577,16 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
             ratings: {}
         });
 
-        alert("🎉 تم قيد الطالب في الفايربيز وتأسيس ملفه الأكاديمي بنجاح!");
+        showToast("🎉 تم قيد الطالب في الفايربيز وتأسيس ملفه الأكاديمي بنجاح!");
         idInput.value = "";
         nameInput.value = "";
         classInput.value = "";
         loadStudentsData("init");
-    } catch (error) { alert("❌ فشل الحفظ: " + error.message); }
+    } catch (error) { showToast("❌ فشل الحفظ: " + error.message, "error"); }
 });
 
 // ==========================================
-// 2. إضافة أو تحديث معلم بالـ Auth
+// 2. إضافة أو تحديث معلم بالـ Auth (تم إصلاح ثغرة كراش الـ SecondaryApp)
 // ==========================================
 const addTeacherForm = document.getElementById('addTeacherForm');
 if (addTeacherForm) {
@@ -566,7 +604,7 @@ if (addTeacherForm) {
         const tSubjectsArray = Array.from(checkedSubjects).map(cb => cb.value);
 
         if (tClassesArray.length === 0 || tSubjectsArray.length === 0) {
-            return alert("⚠️ يجب اختيار مادة واحدة وفصل واحد على الأقل للمعلم!");
+            return showToast("⚠️ يجب اختيار مادة واحدة وفصل واحد على الأقل للمعلم!", "error");
         }
 
         if (editingTeacherId) {
@@ -576,7 +614,7 @@ if (addTeacherForm) {
                     subject: tSubjectsArray,
                     class: tClassesArray
                 });
-                alert(`🎉 تم تحديث بيانات المعلم بنجاح!`);
+                showToast(`🎉 تم تحديث بيانات المعلم بنجاح!`);
 
                 editingTeacherId = null;
                 document.getElementById('teacherEmail').disabled = false;
@@ -593,12 +631,13 @@ if (addTeacherForm) {
                 }
                 addTeacherForm.reset();
                 loadTeachersData("init");
-            } catch (error) { alert("❌ خطأ أثناء تحديث البيانات: " + error.message); }
+            } catch (error) { showToast("❌ خطأ أثناء تحديث البيانات: " + error.message, "error"); }
             return;
         }
 
         try {
-            const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+            // حل ذكي: نتأكد هل الـ SecondaryApp تم إنشاؤه من قبل لتفادي الـ Crash
+            const secondaryApp = getApps().find(app => app.name === "SecondaryApp") || initializeApp(firebaseConfig, "SecondaryApp");
             const secondaryAuth = getAuth(secondaryApp);
 
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, tEmail, tPassword);
@@ -613,10 +652,10 @@ if (addTeacherForm) {
             });
 
             await secondaryAuth.signOut();
-            alert(`✅ تم تسجيل المعلم وتكريت حسابه بنجاح!`);
+            showToast(`✅ تم تسجيل المعلم وتكريت حسابه بنجاح!`);
             addTeacherForm.reset();
             loadTeachersData("init");
-        } catch (error) { alert("❌ حدث خطأ أثناء الحفظ: " + error.message); }
+        } catch (error) { showToast("❌ حدث خطأ أثناء الحفظ: " + error.message, "error"); }
     });
 }
 
@@ -628,16 +667,16 @@ document.getElementById('saveGradeBtn')?.addEventListener('click', async () => {
     const subInput = document.getElementById('subject');
     const gradeInput = document.getElementById('grade');
 
-    if (!idInput.value || !subInput.value || !gradeInput.value) return alert("برجاء تحديد كود الطالب، المادة والدرجة");
+    if (!idInput.value || !subInput.value || !gradeInput.value) return showToast("برجاء تحديد كود الطالب، المادة والدرجة", "error");
     try {
         const gradeVal = parseFloat(gradeInput.value);
         const updateData = {};
         updateData[`grades.${subInput.value}`] = gradeVal;
 
         await updateDoc(doc(db, "students", idInput.value), updateData);
-        alert("تم رصد الدرجة بنجاح!");
+        showToast("تم رصد الدرجة بنجاح!");
         gradeInput.value = "";
-    } catch (e) { alert("خطأ: " + e.message); }
+    } catch (e) { showToast("خطأ: " + e.message, "error"); }
 });
 
 // ==========================================
@@ -648,7 +687,7 @@ document.getElementById('saveViolationBtn')?.addEventListener('click', async () 
     const titleInput = document.getElementById('vTitle');
     const detailsInput = document.getElementById('vDetails');
 
-    if (!idInput.value || !titleInput.value) return alert("برجاء إدخال كود الطالب وعنوان المخالفة");
+    if (!idInput.value || !titleInput.value) return showToast("برجاء إدخال كود الطالب وعنوان المخالفة", "error");
     try {
         await updateDoc(doc(db, "students", idInput.value), {
             violations: arrayUnion({
@@ -657,11 +696,11 @@ document.getElementById('saveViolationBtn')?.addEventListener('click', async () 
                 date: new Date().toLocaleDateString()
             })
         });
-        alert("تم تسجيل المخالفة بنجاح!");
+        showToast("تم تسجيل المخالفة بنجاح!");
         titleInput.value = "";
         detailsInput.value = "";
         idInput.value = "";
-    } catch (e) { alert("خطأ: " + e.message); }
+    } catch (e) { showToast("خطأ: " + e.message, "error"); }
 });
 
 // ==========================================
@@ -685,6 +724,7 @@ document.getElementById('getTop10Btn')?.addEventListener('click', async () => {
             top10.forEach((stu, idx) => {
                 tbody.innerHTML += `<tr><td>${idx + 1}</td><td>${stu.id}</td><td>${stu.name}</td><td>${stu.total} درجة</td></tr>`;
             });
+            showToast("تم تحديث قائمة الأوائل بنجاح!");
         }
-    } catch (e) { alert("خطأ في جلب الدفعة: " + e.message); }
+    } catch (e) { showToast("خطأ في جلب الدفعة: " + e.message, "error"); }
 });

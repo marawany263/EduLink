@@ -1,32 +1,36 @@
 <!-- register.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <title>EduLink - تسجيل حساب ولي أمر جديد</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/login.css"> <!-- هتاخد نفس ستايل صفحة اللوجن الفاتح -->
 </head>
+
 <body>
     <div class="login-container">
         <div class="login-card">
             <h2>إنشاء حساب ولي أمر</h2>
             <p>يرجى إدخال بياناتك وكود الطالب الخاص بابنك لربط الحساب</p>
-            
+
             <input type="text" id="parentName" placeholder="اسم ولي الأمر بالكامل">
             <input type="email" id="parentEmail" placeholder="البريد الإلكتروني الجديد">
             <input type="password" id="parentPassword" placeholder="كلمة المرور (6 أرقام أو حروف على الأقل)">
             <input type="text" id="studentIdInput" placeholder="كود الطالب (المستلم من إدارة المدرسة)">
-            
+
             <button id="registerBtn">إنشاء الحساب والربط بالنظام</button>
-            
+
             <p style="margin-top: 15px; font-size: 14px;">
-                لديك حساب بالفعل؟ <a href="index.html" style="color: #2563eb; text-decoration: none; font-weight: bold;">تسجيل الدخول</a>
+                لديك حساب بالفعل؟ <a href="login.html"
+                    style="color: #2563eb; text-decoration: none; font-weight: bold;">تسجيل الدخول</a>
             </p>
         </div>
     </div>
-
+    <div id="toastContainer" class="toast-container"></div>
     <!-- ربط ملف الجافا سكريبت الخاص بالتسجيل -->
     <script type="module" src="js/register.js"></script>
 </body>
+
 </html>

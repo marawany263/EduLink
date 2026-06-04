@@ -9,8 +9,14 @@
 </head>
 
 <body style="background-color: #f1f5f9; font-family: 'Cairo', sans-serif; padding: 20px; margin: 0;">
-    <h1>لوحة تحكم إدارة المدرسة (التحكم المركزي)</h1>
-    <hr>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 15px;">
+        <h1 style="margin: 0;">لوحة تحكم إدارة المدرسة (التحكم المركزي)</h1>
+        <button id="logoutBtn" style="background: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo', sans-serif; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2); transition: 0.2s;">
+            🚪 تسجيل الخروج
+        </button>
+    </div>
+    <hr style="border: 0; height: 1px; background: #e2e8f0; margin-bottom: 20px;">
 
     <div class="card"
         style="background: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px;">
@@ -32,7 +38,7 @@
                     style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
                 <button id="addSubjectBtn"
                     style="background: #2563eb; color: white; width: 100%; padding: 11px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">حفظ
-                    وتثبيت Mادة</button>
+                    وتثبيت مادة</button>
             </div>
         </div>
     </div>
@@ -121,7 +127,6 @@
             <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 260px;">
                 <input type="text" id="searchStudentInput" placeholder="🔍 ابحث عن طالب بالاسم..."
                     style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: 'Cairo'; box-sizing: border-box;">
-
             </div>
         </div>
 
@@ -132,14 +137,12 @@
                         <th style="padding: 12px; color: #475569; font-weight: 700;">كود الطالب (ID)</th>
                         <th style="padding: 12px; color: #475569; font-weight: 700;">اسم الطالب</th>
                         <th style="padding: 12px; color: #475569; font-weight: 700;">الفصل الحالي</th>
-                        <th style="padding: 12px; color: #475569; font-weight: 700; text-align: center;">العمليات
-                            والإجراءات</th>
+                        <th style="padding: 12px; color: #475569; font-weight: 700; text-align: center;">العمليات والإجراءات</th>
                     </tr>
                 </thead>
                 <tbody id="studentsTableBody">
                     <tr>
-                        <td colspan="4" style="text-align:center; padding: 20px; color:#94a3b8; font-weight: 600;">جاري
-                            تحميل كشف الطلاب...</td>
+                        <td colspan="4" style="text-align:center; padding: 20px; color:#94a3b8; font-weight: 600;">جاري تحميل كشف الطلاب...</td>
                     </tr>
                 </tbody>
             </table>
@@ -148,13 +151,10 @@
         <div
             style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; direction: ltr;">
             <button id="nextStudentsBtn"
-                style="background: #475569; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">التالي
-                ➔</button>
-            <span id="studentsPageIndicator" style="font-weight: bold; color: #475569; font-family: 'Cairo';">صفحة
-                1</span>
+                style="background: #475569; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">التالي ➔</button>
+            <span id="studentsPageIndicator" style="font-weight: bold; color: #475569; font-family: 'Cairo';">صفحة 1</span>
             <button id="prevStudentsBtn"
-                style="background: #475569; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">➔
-                السابق</button>
+                style="background: #475569; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">➔ السابق</button>
         </div>
     </div>
 
@@ -182,7 +182,6 @@
                 style="margin-bottom: 15px; display: flex; gap: 10px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <input type="text" id="searchTeacherInput" placeholder="🔍 ابحث عن معلم بالاسم..."
                     style="flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: 'Cairo'; font-size: 14px;">
-
             </div>
 
             <div style="overflow-x: auto;">
@@ -198,8 +197,7 @@
                     </thead>
                     <tbody id="teachersTableBody">
                         <tr>
-                            <td colspan="5" style="text-align:center; padding: 20px; color:#94a3b8;">جاري تحميل
-                                المعلمين...</td>
+                            <td colspan="5" style="text-align:center; padding: 20px; color:#94a3b8;">جاري تحميل المعلمين...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -208,13 +206,11 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; direction: ltr;">
                 <button id="nextTeachersBtn"
-                    style="background: #475569; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; font-size: 13px;">التالي
-                    ➔</button>
+                    style="background: #475569; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; font-size: 13px;">التالي ➔</button>
                 <span id="teachersPageIndicator"
                     style="font-weight: bold; color: #475569; font-size: 13px; font-family: 'Cairo';">صفحة 1</span>
                 <button id="prevTeachersBtn"
-                    style="background: #475569; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; font-size: 13px;">➔
-                    السابق</button>
+                    style="background: #475569; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; font-size: 13px;">➔ السابق</button>
             </div>
         </div>
 
@@ -236,6 +232,8 @@
             </div>
         </div>
     </div>
+
+    <div id="toastContainer" class="toast-container"></div>
 
     <script type="module" src="js/admin.js"></script>
 </body>

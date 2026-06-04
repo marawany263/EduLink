@@ -288,7 +288,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('currentStudentId'); 
-            window.location.href = "index.html"; 
+            window.location.href = "login.html"; 
         });
     }
 });
