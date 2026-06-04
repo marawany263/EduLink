@@ -1,8 +1,152 @@
 // js/admin.js
-import { db, firebaseConfig } from "./firebase-config.js"; // استيراد الـ db والـ config لتشغيل الحيلة الذكية
+import { db, firebaseConfig } from "./firebase-config.js"; 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, setDoc, updateDoc, arrayUnion, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// ==========================================
+// 0. دالات جلب وتحديث البيانات المشتركة (الفصول والمواد والجداول) ديناميكياً
+// ==========================================
+async function loadAdminDynamicData() {
+    try {
+        // أ. جلب الفصول من كولكشن classes
+        const classesSnap = await getDocs(collection(db, "classes"));
+        const classesList = [];
+        classesSnap.forEach(doc => classesList.push(doc.data().name));
+
+        // ب. جلب المواد من كولكشن subjects
+        const subjectsSnap = await getDocs(collection(db, "subjects"));
+        const subjectsList = [];
+        subjectsSnap.forEach(doc => subjectsList.push(doc.data().name));
+
+        // 1. تحديث قائمة فصول الطلاب (Dropdown)
+        const stuClassSelect = document.getElementById('stuClass');
+        if (stuClassSelect) {
+            stuClassSelect.innerHTML = '<option value="">-- اختر الفصل المدرسي --</option>';
+            classesList.forEach(cls => {
+                stuClassSelect.innerHTML += `<option value="${cls}">فصل ${cls}</option>`;
+            });
+        }
+
+        // 2. تحديث قائمة المواد في قسم رصد الدرجات (Dropdown)
+        const gradeSubjectSelect = document.getElementById('subject');
+        if (gradeSubjectSelect) {
+            gradeSubjectSelect.innerHTML = '<option value="">-- اختر المادة المراد رصدها --</option>';
+            subjectsList.forEach(sub => {
+                gradeSubjectSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+            });
+        }
+
+        // 3. حقن الفصول كـ Checkboxes متعددة لإضافة معلم
+        const teacherClassesContainer = document.getElementById('teacherClassesContainer');
+        if (teacherClassesContainer) {
+            teacherClassesContainer.innerHTML = classesList.length === 0 ? '<span style="color:#94a3b8; font-size:13px;">⚠️ لا توجد فصول، أضف فصولاً من الأعلى أولاً</span>' : '';
+            classesList.forEach(cls => {
+                teacherClassesContainer.innerHTML += `
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#334155;">
+                        <input type="checkbox" name="teacherClasses" value="${cls}" style="accent-color:#2563eb; transform:scale(1.1); cursor:pointer;"> فصل ${cls}
+                    </label>
+                `;
+            });
+        }
+
+        // 4. حقن المواد كـ Checkboxes متعددة لإضافة معلم
+        const teacherSubjectsContainer = document.getElementById('teacherSubjectsContainer');
+        if (teacherSubjectsContainer) {
+            teacherSubjectsContainer.innerHTML = subjectsList.length === 0 ? '<span style="color:#94a3b8; font-size:13px;">⚠️ لا توجد مواد، أضف مواداً من الأعلى أولاً</span>' : '';
+            subjectsList.forEach(sub => {
+                teacherSubjectsContainer.innerHTML += `
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#334155;">
+                        <input type="checkbox" name="teacherSubjects" value="${sub}" style="accent-color:#2563eb; transform:scale(1.1); cursor:pointer;"> ${sub}
+                    </label>
+                `;
+            });
+        }
+
+        // 5. تحديث جدول المواد المتاحة أسفل الصفحة
+        const subjectsTableBody = document.getElementById('subjectsTableBody');
+        if (subjectsTableBody) {
+            subjectsTableBody.innerHTML = subjectsList.length === 0 ? '<tr><td style="text-align:center; padding:15px; color:#94a3b8;">لا توجد مواد مسجلة</td></tr>' : '';
+            subjectsList.forEach(sub => {
+                subjectsTableBody.innerHTML += `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding:12px; font-weight:600; color:#1e293b;">${sub}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // 6. تحديث جدول المعلمين المقيدين بالنظام
+        const teachersTableBody = document.getElementById('teachersTableBody');
+        if (teachersTableBody) {
+            const usersSnap = await getDocs(collection(db, "users"));
+            teachersTableBody.innerHTML = "";
+            let hasTeachers = false;
+
+            usersSnap.forEach(doc => {
+                const userData = doc.data();
+                if (userData.role === "teacher") {
+                    hasTeachers = true;
+                    // دعم قراءة المصفوفات والتحويل لنصوص منسقة للعرض بالشارات
+                    const subDisplay = Array.isArray(userData.subject) ? userData.subject.join(' ، ') : (userData.subject || "غير محدد");
+                    const clsDisplay = Array.isArray(userData.class) ? userData.class.join(' ، ') : (userData.class || "غير محدد");
+
+                    teachersTableBody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <td style="padding:12px; font-weight:600; color:#1e293b;">${userData.name || 'بدون اسم'}</td>
+                            <td style="padding:12px; color:#475569; font-size:14px;">${userData.email}</td>
+                            <td style="padding:12px;"><span style="background:#eff6ff; color:#2563eb; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:600; display:inline-block;">${subDisplay}</span></td>
+                            <td style="padding:12px;"><span style="background:#f0fdf4; color:#16a34a; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:600; display:inline-block;">${clsDisplay}</span></td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (!hasTeachers) {
+                teachersTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8;">لا يوجد معلمون مسجلون حالياً</td></tr>';
+            }
+        }
+
+    } catch (e) {
+        console.error("حدث خطأ أثناء تحميل البيانات اللحظية للوحة:", e);
+    }
+}
+
+// تشغيل الفحص والتحميل بمجرد فتح الصفحة فوراً
+document.addEventListener('DOMContentLoaded', loadAdminDynamicData);
+
+
+// ==========================================
+// 0.5 أكواد حفظ الفصول والمواد الجديدة
+// ==========================================
+document.getElementById('addClassBtn')?.addEventListener('click', async () => {
+    const classInput = document.getElementById('newClassName');
+    const className = classInput.value.trim();
+
+    if (!className) return alert("برجاء إدخال اسم الفصل أولاً");
+
+    try {
+        await setDoc(doc(db, "classes", className), { name: className });
+        alert(`🎉 تم حفظ وتثبيت الفصل (${className}) بنجاح في قاعدة البيانات!`);
+        classInput.value = "";
+        await loadAdminDynamicData(); // ريفرش فوري للقوائم والجداول بدون تحميل الصفحة
+    } catch (e) { alert("خطأ أثناء حفظ الفصل: " + e.message); }
+});
+
+document.getElementById('addSubjectBtn')?.addEventListener('click', async () => {
+    const subjectInput = document.getElementById('newSubjectName');
+    const subjectName = subjectInput.value.trim();
+
+    if (!subjectName) return alert("برجاء إدخال اسم المادة أولاً");
+
+    try {
+        await setDoc(doc(db, "subjects", subjectName), { name: subjectName });
+        alert(`🎉 تم حفظ وتثبيت المادة (${subjectName}) بنجاح في قاعدة البيانات!`);
+        subjectInput.value = "";
+        await loadAdminDynamicData(); // ريفرش فوري للقوائم والجداول
+    } catch (e) { alert("خطأ أثناء حفظ المادة: " + e.message); }
+});
+
 
 // ==========================================
 // 1. إضافة طالب جديد وتأسيس بياناته
@@ -12,11 +156,9 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
     const nameInput = document.getElementById('stuName');
     const classInput = document.getElementById('stuClass');
 
-    if(!idInput.value || !nameInput.value) return alert("برجاء إدخال البيانات كاملة");
+    if(!idInput.value || !nameInput.value || !classInput.value) return alert("برجاء إدخال البيانات كاملة وتحديد الفصل");
 
     try {
-        console.log("جاري محاولة إرسال البيانات للفايرستور...");
-        
         await setDoc(doc(db, "students", idInput.value), {
             id: idInput.value,
             name: nameInput.value,
@@ -28,35 +170,41 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
         });
 
         alert("🎉 عظَمة! تم حفظ الطالب في الفايربيز وتأسيس الـ Collection بنجاح!");
-        
-        // 👇 تنظيف الخانات فوراً بعد النجاح
         idInput.value = "";
         nameInput.value = "";
         
     } catch (error) {
-        console.error("خطأ الفايربيز بالكامل:", error);
-        alert("❌ الفايربيز رفض الحفظ! السبب غالباً صلاحيات الحماية المقفولة. نص الخطأ: " + error.message);
+        alert("❌ الفايربيز رفض الحفظ! نص الخطأ: " + error.message);
     }
 });
 
+
 // ==========================================
-// 2. إضافة معلم جديد وتكريت حسابه (تعديل الـ Email & Password)
+// 2. إضافة معلم جديد وتكريت حسابه (يدعم الـ Arrays للاختيارات المتعددة)
 // ==========================================
 const addTeacherForm = document.getElementById('addTeacherForm');
 
 if (addTeacherForm) {
     addTeacherForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); // منع الصفحة من الريفرش عند الإرسال
+        e.preventDefault(); 
 
-        // جلب القيم من الفورم المعدلة
         const tName = document.getElementById('teacherName').value.trim();
         const tEmail = document.getElementById('teacherEmail').value.trim();
         const tPassword = document.getElementById('teacherPassword').value.trim();
-        const tSubject = document.getElementById('teacherSubject').value.trim();
-        const tClass = document.getElementById('teacherClass').value.trim();
+        
+        // تجميع الاختيارات المتعددة من الـ Checkboxes
+        const checkedClasses = document.querySelectorAll('input[name="teacherClasses"]:checked');
+        const checkedSubjects = document.querySelectorAll('input[name="teacherSubjects"]:checked');
+
+        const tClassesArray = Array.from(checkedClasses).map(cb => cb.value);
+        const tSubjectsArray = Array.from(checkedSubjects).map(cb => cb.value);
+
+        if (tClassesArray.length === 0 || tSubjectsArray.length === 0) {
+            return alert("⚠️ يجب اختيار مادة واحدة وفصل واحد على الأقل للمعلم الجديد!");
+        }
 
         try {
-            // 🔥 الحيلة الذكية: إنشاء نسخة مؤقتة من الفايربيز لحماية جلسة الآدمن من الخروج تلقائياً
+            // 🔥 الحيلة الذكية لحماية جلسة الآدمن الحالية من الخروج
             const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
             const secondaryAuth = getAuth(secondaryApp);
 
@@ -64,23 +212,22 @@ if (addTeacherForm) {
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, tEmail, tPassword);
             const teacherUser = userCredential.user;
 
-            // ب. حفظ بيانات المدرس في كولكشن "users" الموحد وبـ الـ UID الخاص به ليتوافق مع اللوجن
+            // ب. حفظ المدرس بالمصفوفات (Arrays) لتغطية المواد والفصول المتعددة
             await setDoc(doc(db, "users", teacherUser.uid), {
                 name: tName,
                 email: tEmail,
-                subject: tSubject,
-                class: tClass,
-                role: "teacher" // رتبة الحساب للأمان وللتوجيه التلقائي
+                subject: tSubjectsArray, // مصفوفة المواد
+                class: tClassesArray,   // مصفوفة الفصول
+                role: "teacher" 
             });
 
-            // جـ. تسجيل خروج وإغلاق النسخة المؤقتة فوراً بعد النجاح لضمان بقاء الآدمن متصلاً
             await secondaryAuth.signOut();
 
-            alert(`✅ تم تسجيل المعلم (${tName}) وتكريت حسابه بنجاح! \nيمكنه الآن الدخول بإيميله الشخصي.`);
-            addTeacherForm.reset(); // تفريغ الخانات بعد الحفظ
+            alert(`✅ تم تسجيل المعلم (${tName}) وتكريت حسابه بنجاح!`);
+            addTeacherForm.reset(); 
+            await loadAdminDynamicData(); // تحديث فوري لجدول المعلمين تحت
 
         } catch (error) {
-            console.error("خطأ أثناء إضافة المعلم:", error);
             if (error.code === 'auth/email-already-in-use') {
                 alert("❌ هذا البريد الإلكتروني مسجل بالفعل لمستخدم آخر!");
             } else {
@@ -90,6 +237,7 @@ if (addTeacherForm) {
     });
 }
 
+
 // ==========================================
 // 3. رصد الدرجات لولي الأمر
 // ==========================================
@@ -98,7 +246,7 @@ document.getElementById('saveGradeBtn')?.addEventListener('click', async () => {
     const subInput = document.getElementById('subject');
     const gradeInput = document.getElementById('grade');
 
-    if(!idInput.value || !gradeInput.value) return alert("برجاء تحديد كود الطالب والدرجة");
+    if(!idInput.value || !subInput.value || !gradeInput.value) return alert("برجاء تحديد كود الطالب، المادة والدرجة");
 
     try {
         const gradeVal = parseFloat(gradeInput.value);
@@ -107,12 +255,11 @@ document.getElementById('saveGradeBtn')?.addEventListener('click', async () => {
         
         await updateDoc(doc(db, "students", idInput.value), updateData);
         alert("تم رصد الدرجة بنجاح!");
-        
-        // 👇 تنظيف خانة الدرجة فقط (ونترك كود الطالب لو هترصد له مادة تانية وراها)
         gradeInput.value = "";
         
     } catch(e) { alert("خطأ: " + e.message); }
 });
+
 
 // ==========================================
 // 4. تسجيل مخالفة سلوكية
@@ -133,14 +280,13 @@ document.getElementById('saveViolationBtn')?.addEventListener('click', async () 
             })
         });
         alert("تم تسجيل المخالفة بنجاح!");
-        
-        // 👇 تنظيف خانات المخالفة بعد الرفع
         titleInput.value = "";
         detailsInput.value = "";
-        idInput.value = ""; // مسح كود الطالب هنا بالمرة
+        idInput.value = ""; 
         
     } catch(e) { alert("خطأ: " + e.message); }
 });
+
 
 // ==========================================
 // 5. احتساب أعلى 10 طلاب

@@ -1,11 +1,84 @@
 // js/teacher.js
 import { db } from "./firebase-config.js";
-import { collection, query, where, getDocs, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // ربط العناصر بالـ IDs الصحيحة والمطابقة للـ HTML
 const classSelect = document.getElementById('classSelect');
 const displayBtn = document.getElementById('loadClassBtn'); 
 const studentsTableBody = document.getElementById('studentsTableBody');
+const teacherNameEl = document.getElementById('teacherName');
+const teacherSubjectEl = document.getElementById('teacherSubject');
+
+
+if (!localStorage.getItem('currentTeacherId')) {
+    window.location.replace('index.html');
+}
+
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    if (confirm("هل أنت متأكد من رغبتك في تسجيل الخروج من منصة EduLink؟")) {
+        localStorage.removeItem('currentTeacherId');
+        window.location.replace('index.html'); // يمسح السجل ويمنع الرجوع لورا
+    }
+});
+// ==========================================
+// 1. جلب بيانات المعلم وتجهيز القائمة ديناميكياً فور فتح الصفحة
+// ==========================================
+async function initTeacherDashboard() {
+    // جلب كود المدرس الحالي المخزن في الـ localStorage عند تسجيل الدخول
+    const currentTeacherId = localStorage.getItem('currentTeacherId');
+    
+    if (!currentTeacherId) {
+        if(teacherNameEl) teacherNameEl.innerText = "⚠️ لم يتم التعرف على المعلم (سجل دخول أولاً)";
+        return;
+    }
+
+    try {
+        // قراءة مستند المعلم من كولكشن users الرئيسي
+        const teacherDocRef = doc(db, "users", currentTeacherId);
+        const teacherSnap = await getDoc(teacherDocRef);
+
+        if (teacherSnap.exists()) {
+            const teacherData = teacherSnap.data();
+
+            // التحقق الأمني من صلاحية الحساب
+            if (teacherData.role !== "teacher") {
+                if(teacherNameEl) teacherNameEl.innerText = "⚠️ هذا الحساب ليس مسجلاً كمعلم في النظام";
+                return;
+            }
+
+            // طباعة الاسم والمادة في الهيدر الترحيبي
+            if(teacherNameEl) teacherNameEl.innerText = teacherData.name || "معلم بدون اسم";
+            if(teacherSubjectEl) teacherSubjectEl.innerText = `📚 مادة: ${teacherData.subject || "غير محددة"}`;
+
+            // تجهيز قائمة الفصول بناءً على حقل class (سواء كان نصاً فرداً أو مصفوفة)
+            if(classSelect) {
+                classSelect.innerHTML = '<option value="">-- اختر الفصل من فصولك المتاحة --</option>';
+                
+                if (teacherData.class) {
+                    if (Array.isArray(teacherData.class)) {
+                        teacherData.class.forEach(className => {
+                            classSelect.innerHTML += `<option value="${className}">فصل ${className}</option>`;
+                        });
+                    } else {
+                        // لو كان الحساب مسجل بفصل واحد كـ String مثل "B-1"
+                        classSelect.innerHTML += `<option value="${teacherData.class}">فصل ${teacherData.class}</option>`;
+                    }
+                } else {
+                    classSelect.innerHTML = '<option value="">⚠️ لا توجد فصول مسجلة لك</option>';
+                }
+            }
+        } else {
+            if(teacherNameEl) teacherNameEl.innerText = "⚠️ حساب المعلم غير موجود في قاعدة البيانات";
+            console.error("المستند غير موجود في كولكشن users بالـ ID:", currentTeacherId);
+        }
+    } catch (error) {
+        if(teacherNameEl) teacherNameEl.innerText = "⚠️ فشل الاتصال بقاعدة البيانات";
+        console.error("خطأ كامل أثناء تهيئة لوحة المعلم:", error);
+    }
+}
+
+// تشغيل دالة التهيئة فور تحميل الصفحة
+document.addEventListener('DOMContentLoaded', initTeacherDashboard);
 
 // تفعيل الساعة الرقمية اللحظية في النظام
 function updateLiveTime() {
@@ -19,7 +92,7 @@ setInterval(updateLiveTime, 1000);
 updateLiveTime();
 
 // ==========================================
-// 1. جلب طلاب الفصل المرفوعين من الإدارة عند الضغط على الزر
+// 2. جلب طلاب الفصل المرفوعين من الإدارة عند الضغط على الزر
 // ==========================================
 displayBtn?.addEventListener('click', async () => {
     const selectedClass = classSelect.value;
@@ -72,7 +145,7 @@ displayBtn?.addEventListener('click', async () => {
 });
 
 // ==========================================
-// 2. حفظ الغياب والتقييم اللحظي التراكمي للحصة في قاعدة البيانات
+// 3. حفظ الغياب والتقييم اللحظي التراكمي للحصة في قاعدة البيانات
 // ==========================================
 document.getElementById('saveSessionBtn')?.addEventListener('click', async () => {
     const rows = studentsTableBody.querySelectorAll('tr');
@@ -82,7 +155,6 @@ document.getElementById('saveSessionBtn')?.addEventListener('click', async () =>
         return alert("لا توجد قائمة طلاب نشطة لحفظها!");
     }
 
-    // 🌟 جلب كود المدرس الحالي المخزن في الـ localStorage عند تسجيل الدخول
     const currentTeacherId = localStorage.getItem('currentTeacherId');
     if (!currentTeacherId) {
         return alert("⚠️ خطأ في صلاحيات المعلم! برجاء تسجيل الخروج وإعادة الدخول لتنشيط الحساب.");

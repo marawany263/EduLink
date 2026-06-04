@@ -2,51 +2,74 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduLink - بوابة المعلم</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/dashboard.css">
 </head>
-<body>
-    <div class="card" style="background: linear-gradient(135deg, #0f172a, #1e3a8a); margin-bottom: 25px; color: white; padding: 20px;">
-        <h1 style="margin: 0; font-size: 24px;">بوابة المعلم للمتابعة والتقييم اللحظي</h1>
-        <p style="margin: 5px 0 0 0; color: #94a3b8;">رصد غياب الحصة وتقييم أداء الطلاب وإرسالها لولي الأمر فوراً</p>
-    </div>
+<body style="background-color: #f1f5f9; font-family: 'Cairo', sans-serif; padding: 20px; margin: 0;">
 
-    <div class="card" style="margin-bottom: 20px;">
-        <h3 style="margin-top: 0;">📋 اختر الفصل لعرض القائمة من الإدارة:</h3>
-        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-            <select id="classSelect" style="width: 280px; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                <option value="">-- اختر الفصل المدرسي --</option>
-                <option value="1-A">فصل أولى أول (1-A)</option>
-                <option value="1-B">فصل أولى ثاني (1-B)</option>
-            </select>
-            <button id="loadClassBtn" style="background-color: #2563eb; color: white; padding: 10px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">عرض الطلاب</button>
+    <div class="card" style="background: #ffffff; margin-bottom: 25px; color: #0f172a; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1 style="margin: 0; font-size: 22px; color: #1e3a8a; font-weight: 700;" id="teacherName">جاري تحميل اسم المعلم...</h1>
+            <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">مرحباً بك في لوحة المتابعة والتقييم اللحظي لمشروع EduLink</p>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div style="background: #eff6ff; color: #2563eb; padding: 8px 18px; border-radius: 20px; font-weight: 700; font-size: 14px; border: 1px solid #bfdbfe;" id="teacherSubject">
+                جاري جلب المادة...
+            </div>
+            
+            <button id="logoutBtn" 
+                    onmouseover="this.style.backgroundColor='#ef4444'; this.style.color='#ffffff';" 
+                    onmouseout="this.style.backgroundColor='#fef2f2'; this.style.color='#ef4444';" 
+                    style="background-color: #fef2f2; color: #ef4444; padding: 8px 18px; border: 1px solid #fee2e2; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 14px; font-family: 'Cairo'; transition: 0.2s; outline: none;">
+                🚪 خروج
+            </button>
         </div>
     </div>
 
-    <div class="card">
-        <h3>📊 بيانات الحصة والطلاب</h3>
-        <p style="font-size: 14px; color: #475569;">التاريخ والوقت اللحظي: <span id="liveTime" style="color: #2563eb; font-weight: bold;">--:--</span></p>
-        
-        <table style="width: 100%; margin-top: 15px;">
-            <thead>
-                <tr>
-                    <th>كود الطالب</th>
-                    <th>الاسم</th>
-                    <th>رصد غياب اليوم</th>
-                    <th>تقييم الأداء بالنجوم (1-5)</th>
-                </tr>
-            </thead>
-            <tbody id="studentsTableBody">
-                <tr>
-                    <td colspan="4" style="text-align:center; color: #94a3b8; padding: 20px;">يرجى اختيار الفصل والضغط على عرض الطلاب...</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="card" style="background: #ffffff; margin-bottom: 20px; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <h3 style="margin-top: 0; color: #1e293b; font-size: 16px;">📋 اختر الفصل لعرض القائمة من الإدارة:</h3>
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <select id="classSelect" style="width: 280px; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; font-size: 15px; font-family: 'Cairo';">
+                <option value="">-- جاري تحميل فصولك المتاحة --</option>
+            </select>
+            <button id="loadClassBtn" style="background-color: #2563eb; color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s;">عرض الطلاب</button>
+        </div>
+    </div>
 
-        <div style="text-align: left; margin-top: 20px;">
-            <button id="saveSessionBtn" style="background-color: #10b981; color: white; padding: 12px 30px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px;">
-                💾 حفظ الحصة ورصد التقييمات فوراً
+    <div class="card" style="background: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <h3 style="margin-top: 0; color: #1e293b; font-size: 16px;">📊 قائمة الطلاب وبيانات الحصة الحالية</h3>
+        <p style="font-size: 13px; color: #475569; background: #f1f5f9; padding: 8px 14px; border-radius: 6px; display: inline-block; margin-bottom: 20px; font-weight: 600;">
+            ⏰ وقت النظام اللحظي: <span id="liveTime" style="color: #2563eb; font-weight: bold;">--:--</span>
+        </p>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: right;">
+                <thead>
+                    <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <th style="padding: 14px; color: #475569; font-weight: bold; font-size: 14px;">كود الطالب</th>
+                        <th style="padding: 14px; color: #475569; font-weight: bold; font-size: 14px;">الاسم</th>
+                        <th style="padding: 14px; color: #475569; font-weight: bold; font-size: 14px;">رصد غياب اليوم</th>
+                        <th style="padding: 14px; color: #475569; font-weight: bold; font-size: 14px;">تقييم الأداء بالنجوم (1-5)</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsTableBody">
+                    <tr>
+                        <td colspan="4" style="text-align:center; color: #94a3b8; padding: 30px; font-size: 14px;">يرجى اختيار الفصل والضغط على عرض الطلاب...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: left; margin-top: 25px;">
+            <button id="saveSessionBtn" style="background-color: #10b981; color: white; padding: 14px 35px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; max-width: 320px; transition: 0.2s;">
+                💾 تسجيل الغياب ورصد التقييمات فوراً
             </button>
         </div>
     </div>
