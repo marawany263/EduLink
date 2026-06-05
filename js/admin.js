@@ -4,6 +4,13 @@ import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.
 import { getAuth, createUserWithEmailAndPassword,signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, setDoc, updateDoc, arrayUnion, collection, getDocs, deleteDoc, getDoc, query, where, limit, startAfter, endBefore, limitToLast, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+
+// // متغيرات عالمية لمتابعة حالات التعديل والرسوم البيانية
+// let editingTeacherId = null;
+// let editingStudentId = null;
+let studentsChartInstance = null; // 🔥 ضيفي المتغير ده هنا
+let teachersChartInstance = null; // تتبع نسخة رسم بياني المواد للمعلمين
+
 // متغيرات عالمية لمتابعة حالات التعديل
 let editingTeacherId = null;
 let editingStudentId = null;
@@ -347,6 +354,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTeachersData("init");
     loadStudentsData("init");
 
+    renderStudentsChart();
+    renderTeachersSubjectChart()
+
     // إعداد الـ Debounce للبحث الحي
     const liveTeacherSearch = debounce(() => {
         loadTeachersData("init");
@@ -488,6 +498,7 @@ function setupTeachersTableActions() {
                     await deleteDoc(doc(db, "users", teacherId));
                     showToast(`✅ تم حذف المعلم (${teacherName}) بنجاح!`);
                     loadTeachersData("init");
+                    renderTeachersSubjectChart();
                 } catch (error) {
                     showToast("❌ فشل الحذف: " + error.message, "error");
                 }
@@ -582,6 +593,7 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
         nameInput.value = "";
         classInput.value = "";
         loadStudentsData("init");
+        renderStudentsChart();
     } catch (error) { showToast("❌ فشل الحفظ: " + error.message, "error"); }
 });
 
@@ -631,6 +643,7 @@ if (addTeacherForm) {
                 }
                 addTeacherForm.reset();
                 loadTeachersData("init");
+                renderTeachersSubjectChart();
             } catch (error) { showToast("❌ خطأ أثناء تحديث البيانات: " + error.message, "error"); }
             return;
         }
@@ -655,6 +668,7 @@ if (addTeacherForm) {
             showToast(`✅ تم تسجيل المعلم وتكريت حسابه بنجاح!`);
             addTeacherForm.reset();
             loadTeachersData("init");
+            renderTeachersSubjectChart();
         } catch (error) { showToast("❌ حدث خطأ أثناء الحفظ: " + error.message, "error"); }
     });
 }
@@ -728,3 +742,139 @@ document.getElementById('getTop10Btn')?.addEventListener('click', async () => {
         }
     } catch (e) { showToast("خطأ في جلب الدفعة: " + e.message, "error"); }
 });
+
+
+// دالة لإنشاء وتحديث الرسم البياني بشكل مستقل وصحيح ١٠٠٪
+async function renderStudentsChart() {
+    const canvas = document.getElementById('studentsChart');
+    if (!canvas) return;
+
+    try {
+        // 🔥 الحل هنا: جلب كولكشن الطلاب بالكامل بشكل مباشر بدون أي شروط باجينيشن أو ليميت
+        const querySnapshot = await getDocs(collection(db, "students"));
+        
+        const classCounts = {};
+
+        querySnapshot.forEach((doc) => {
+            const studentData = doc.data();
+            // تأكدي من كتابة الحقل بنفس الطريقة (class)
+            const className = `فصل ${studentData.class || 'غير محدد'}`;
+            classCounts[className] = (classCounts[className] || 0) + 1;
+        });
+
+        const labels = Object.keys(classCounts);
+        const dataValues = Object.values(classCounts);
+
+        // تدمير التشارت القديم لمنع تداخل البيانات والـ Glitches
+        if (studentsChartInstance) {
+            studentsChartInstance.destroy();
+        }
+
+        // بناء الرسم البياني الجديد بالداتا الإجمالية الحقيقية
+        studentsChartInstance = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'عدد الطلاب المقيدين',
+                    data: dataValues,
+                    backgroundColor: '#2563eb',
+                    borderColor: '#1d4ed8',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    maxBarThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { font: { family: 'Cairo', size: 11 } } }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { stepSize: 1, font: { family: 'Cairo', size: 10 } } 
+                    },
+                    x: {
+                        ticks: { font: { family: 'Cairo', size: 11 } }
+                    }
+                }
+            }
+        });
+
+    } catch (e) {
+        console.error("خطأ أثناء تحديث الرسم البياني الإجمالي:", e);
+    }
+}
+
+// دالة لإنشاء وتحديث الرسم البياني الدائري لتخصصات المعلمين
+async function renderTeachersSubjectChart() {
+    const canvas = document.getElementById('teachersSubjectChart');
+    if (!canvas) return;
+
+    try {
+        // جلب المعلمين فقط من كولكشن users
+        const q = query(collection(db, "users"), where("role", "==", "teacher"));
+        const querySnapshot = await getDocs(q);
+
+        const subjectCounts = {};
+
+        querySnapshot.forEach((docSnap) => {
+            const userData = docSnap.data();
+            const subjects = userData.subject;
+
+            // بما إن المادة ممكن تكون Array (مجموعة مواد) أو نص مفرد
+            if (Array.isArray(subjects)) {
+                subjects.forEach(sub => {
+                    if (sub) subjectCounts[sub] = (subjectCounts[sub] || 0) + 1;
+                });
+            } else if (subjects) {
+                subjectCounts[subjects] = (subjectCounts[subjects] || 0) + 1;
+            }
+        });
+
+        const labels = Object.keys(subjectCounts);
+        const dataValues = Object.values(subjectCounts);
+
+        // تدمير النسخة القديمة لتجنب الـ Glitches والتداخل عند التحديث اللحظي
+        if (teachersChartInstance) {
+            teachersChartInstance.destroy();
+        }
+
+        // بناء الـ Doughnut Chart (أشيك وأرق من الـ Pie الكاملة)
+        teachersChartInstance = new Chart(canvas, {
+            type: 'doughnut', // تقدري تخليها 'pie' لو حباها مصمتة بالكامل
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataValues,
+                    // مجموعة ألوان مبهجة ومتناسقة وتلقط العين
+                    backgroundColor: [
+                        '#2563eb', '#10b981', '#f59e0b', '#ef4444', 
+                        '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'right', // يظهر قائمة المواد على اليسار/اليمين بشكل منظم
+                        labels: {
+                            font: { family: 'Cairo', size: 11 },
+                            boxWidth: 12
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (e) {
+        console.error("خطأ أثناء إنشاء رسم بياني المواد:", e);
+    }
+}
