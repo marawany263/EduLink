@@ -83,32 +83,36 @@ th {
 }
 
 .toast-container {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .custom-toast {
-        background: #1e293b;
-        color: #ffffff;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transform: translateX(-150%);
-        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        border-right: 4px solid #2563eb;
-    }
-    .custom-toast.show {
-        transform: translateX(0);
-    }
-    .custom-toast.success { border-right-color: #10b981; }
-    .custom-toast.error { border-right-color: #ef4444; }
-    .custom-toast.warning { border-right-color: #f59e0b; }
+    position: fixed;
+    top: 20px;
+    right: 20px; /* 👈 غيرناها لليمين */
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.custom-toast {
+    background: #1e293b;
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateX(150%); /* 👈 خليناها بالموجب عشان يدخل من اليمين للشمال */
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border-left: 4px solid #2563eb; /* 👈 غيرناها لـ left عشان الخط الملون يبقى من جوه الشاشة */
+}
+
+.custom-toast.show {
+    transform: translateX(0);
+}
+
+/* تعديل اتجاه الألوان */
+.custom-toast.success { border-left-color: #10b981; }
+.custom-toast.error { border-left-color: #ef4444; }
+.custom-toast.warning { border-left-color: #f59e0b; }
