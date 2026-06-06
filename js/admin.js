@@ -5,9 +5,7 @@ import { getAuth, createUserWithEmailAndPassword,signOut } from "https://www.gst
 import { doc, setDoc, updateDoc, arrayUnion, collection, getDocs, deleteDoc, getDoc, query, where, limit, startAfter, endBefore, limitToLast, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 
-// // متغيرات عالمية لمتابعة حالات التعديل والرسوم البيانية
-// let editingTeacherId = null;
-// let editingStudentId = null;
+
 let studentsChartInstance = null; // 🔥 ضيفي المتغير ده هنا
 let teachersChartInstance = null; // تتبع نسخة رسم بياني المواد للمعلمين
 
@@ -438,6 +436,7 @@ function setupStudentsTableActions() {
                     await deleteDoc(doc(db, "students", stuId));
                     showToast(`✅ تم مسح سجلات الطالب (${stuName}) بنجاح!`);
                     loadStudentsData("init");
+                    renderStudentsChart();
                 } catch (error) {
                     showToast("❌ فشل الحذف: " + error.message, "error");
                 }
@@ -568,6 +567,7 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
                 submitBtn.style.background = "";
             }
             loadStudentsData("init");
+            renderStudentsChart();
         } catch (error) { showToast("❌ خطأ في السيرفر أثناء التعديل: " + error.message, "error"); }
         return;
     }
