@@ -4,7 +4,33 @@ import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.
 import { getAuth, createUserWithEmailAndPassword,signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, setDoc, updateDoc, arrayUnion, collection, getDocs, deleteDoc, getDoc, query, where, limit, startAfter, endBefore, limitToLast, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// ==========================================
+// 🌟 نظام الـ Toaster المخصص للأدمين بديل الـ Alert
+// ==========================================
+function showToast(message, type = "success") {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `custom-toast ${type}`;
+    
+    let icon = "🔔";
+    if (type === "success") icon = "🎉";
+    if (type === "error") icon = "⚠️";
+    if (type === "warning") icon = "🔒";
 
+    toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+    container.appendChild(toast);
+    
+    // تشغيل الـ Animation للظهور
+    setTimeout(() => toast.classList.add('show'), 50);
+    
+    // اختفاء التوستر وحذفه تماماً بعد 4 ثواني
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
+}
 
 let studentsChartInstance = null; // 🔥 ضيفي المتغير ده هنا
 let teachersChartInstance = null; // تتبع نسخة رسم بياني المواد للمعلمين
@@ -28,21 +54,7 @@ let teacherFirstVisible = null;
 let teacherLastVisible = null;
 let teacherPageNum = 1;
 
-// ==========================================
-// دالة التوستر (Notifications) الاحترافية بدلاً من الـ Alert
-// ==========================================
-function showToast(message, type = "success") {
-    // إذا كان عندك دالة جاهزة في الـ UI لتشغيل التوستر، ضعها هنا.
-    // كمثال متوافق مع نظامك الشيك:
-    const toaster = document.getElementById('toast-container'); // أو الـ ID الخاص بك
-    if (toaster) {
-        // لوجيك إظهار التوستر الخاص بك
-        console.log(`[${type.toUpperCase()}] ${message}`);
-    } else {
-        // حماية تضمن ظهور الرسالة للمستخدم في كل الأحوال حتى لو التوستر مش جاهز
-        alert(`${type === "success" ? "✅" : "⚠️"} ${message}`);
-    }
-}
+
 
 // دالة الـ Debouncing الذكية لمنع استهلاك كوتة السيرفر أثناء الكتابة الحية
 function debounce(func, delay) {
@@ -55,6 +67,9 @@ function debounce(func, delay) {
     };
 }
 
+// ==========================================
+// 0. دالات جلب وتحديث البيانات المشتركة (الفصول والمواد والـ Dropdowns)
+// ==========================================
 // ==========================================
 // 0. دالات جلب وتحديث البيانات المشتركة (الفصول والمواد والـ Dropdowns)
 // ==========================================
@@ -142,6 +157,7 @@ async function loadAdminDynamicData() {
 
     } catch (e) {
         console.error("حدث خطأ أثناء تحميل البيانات اللحظية للوحة:", e);
+        showToast("فشل في تحديث القوائم الديناميكية من السيرفر", "error");
     }
 }
 
@@ -186,8 +202,11 @@ async function loadTeachersData(navigationAction = "init") {
         // التحقق من وجود بيانات
         if (querySnapshot.empty) {
             if (navigationAction === "next") {
-                showToast("⚠️ لا توجد صفحات تالية", "error");
-                loadTeachersData("init");
+                showToast("وصلت لآخر صفحة، لا توجد صفحات تالية", "warning");
+                return;
+            }
+            if (navigationAction === "prev") {
+                showToast("أنت بالفعل في الصفحة الأولى", "warning");
                 return;
             }
             teachersTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#94a3b8;">لا يوجد معلمون يطابقون البحث حالياً</td></tr>';
@@ -239,6 +258,7 @@ async function loadTeachersData(navigationAction = "init") {
 
     } catch (e) {
         console.error("خطأ جلب المعلمين:", e);
+        showToast("حدث خطأ أثناء جلب قائمة المعلمين", "error");
     }
 }
 
@@ -293,7 +313,11 @@ async function loadStudentsData(navigationAction = "init") {
 
         if (querySnapshot.empty) {
             if (navigationAction === "next") {
-                showToast("⚠️ لا توجد صفحات تالية", "error");
+                showToast("وصلت لآخر صفحة، لا توجد صفحات تالية", "warning");
+                return;
+            }
+            if (navigationAction === "prev") {
+                showToast("أنت بالفعل في الصفحة الأولى", "warning");
                 return;
             }
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8; font-weight: 600;">لا يوجد طلاب يطابقون المعايير المحددة حالياً</td></tr>';
@@ -338,9 +362,9 @@ async function loadStudentsData(navigationAction = "init") {
     } catch (e) {
         console.error("خطأ أثناء جلب الطلاب المفلترين الباجينيشن:", e);
         tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:#ef4444;">❌ فشل جلب البيانات: ${e.message}</td></tr>`;
+        showToast("حدث خطأ غير متوقع أثناء جلب بيانات الطلاب", "error");
     }
 }
-
 // ==========================================
 // تشغيل وفحص المستمعين فور تحميل الصفحة بالكامل
 // ==========================================
@@ -353,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadStudentsData("init");
 
     renderStudentsChart();
-    renderTeachersSubjectChart()
+    renderTeachersSubjectChart();
 
     // إعداد الـ Debounce للبحث الحي
     const liveTeacherSearch = debounce(() => {
@@ -380,26 +404,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ==========================================
-    // 🚪 تسجيل الخروج العودة لصفحة الـ Login
-    // ==========================================
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-        if (confirm("هل أنت متأكد من رغبتك في تسجيل الخروج؟")) {
-            try {
-                const mainAuth = getAuth(); // جلب نسخة الـ Auth الأساسية للآدمين
-                await signOut(mainAuth);
-                
-                showToast("تم تسجيل الخروج بنجاح، جاري توجيهك...", "success");
-                
-                // توجيه المستخدم لصفحة تسجيل الدخول بعد ثانية ونصف
-                setTimeout(() => {
-                    window.location.href = "login.html"; 
-                }, 1500);
-                
-            } catch (error) {
-                showToast("❌ خطأ أثناء تسجيل الخروج: " + error.message, "error");
-            }
+// 🚪 تسجيل الخروج العودة لصفحة الـ Login
+// ==========================================
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    if (confirm("هل أنت متأكد من رغبتك في تسجيل الخروج من لوحة الإدارة؟")) {
+        try {
+            const mainAuth = getAuth(); // جلب نسخة الـ Auth الأساسية للآدمين
+            await signOut(mainAuth);
+            
+            showToast("تم تسجيل الخروج بنجاح، جاري توجيهك...", "success");
+            
+            // توجيه المستخدم لصفحة تسجيل الدخول بعد ثانية ونصف
+            setTimeout(() => {
+                window.location.href = "login.html"; 
+            }, 1500);
+            
+        } catch (error) {
+            showToast("خطأ أثناء تسجيل الخروج: " + error.message, "error");
         }
-    });
+    }
+});
+
 // ==========================================
 // لوجيك مراقبة الإجراءات والتعديلات داخل جدول الطلاب (CRUD)
 // ==========================================
@@ -434,11 +459,11 @@ function setupStudentsTableActions() {
             if (confirm(`⚠️ هل أنت متأكد تماماً من حذف الطالب (${stuName}) نهائياً؟ سيتم مسح ملفه السلوكي ودرجاته بالكامل!`)) {
                 try {
                     await deleteDoc(doc(db, "students", stuId));
-                    showToast(`✅ تم مسح سجلات الطالب (${stuName}) بنجاح!`);
+                    showToast(`تم مسح سجلات الطالب (${stuName}) بنجاح!`, "success");
                     loadStudentsData("init");
                     renderStudentsChart();
                 } catch (error) {
-                    showToast("❌ فشل الحذف: " + error.message, "error");
+                    showToast("فشل في حذف الطالب: " + error.message, "error");
                 }
             }
         }
@@ -495,11 +520,11 @@ function setupTeachersTableActions() {
             if (confirm(`⚠️ هل أنت متأكد تماماً من حذف المعلم (${teacherName}) نهائياً من السيستم؟`)) {
                 try {
                     await deleteDoc(doc(db, "users", teacherId));
-                    showToast(`✅ تم حذف المعلم (${teacherName}) بنجاح!`);
+                    showToast(`تم حذف المعلم (${teacherName}) بنجاح!`, "success");
                     loadTeachersData("init");
                     renderTeachersSubjectChart();
                 } catch (error) {
-                    showToast("❌ فشل الحذف: " + error.message, "error");
+                    showToast("فشل في حذف المعلم: " + error.message, "error");
                 }
             }
         }
@@ -512,25 +537,29 @@ function setupTeachersTableActions() {
 document.getElementById('addClassBtn')?.addEventListener('click', async () => {
     const classInput = document.getElementById('newClassName');
     const className = classInput.value.trim();
-    if (!className) return showToast("برجاء إدخال اسم الفصل أولاً", "error");
+    if (!className) return showToast("برجاء إدخال اسم الفصل أولاً", "warning");
     try {
         await setDoc(doc(db, "classes", className), { name: className });
-        showToast(`🎉 تم تثبيت الفصل (${className}) بنجاح!`);
+        showToast(`🎉 تم تثبيت الفصل (${className}) بنجاح!`, "success");
         classInput.value = "";
         await loadAdminDynamicData();
-    } catch (e) { showToast("خطأ أثناء حفظ الفصل: " + e.message, "error"); }
+    } catch (e) { 
+        showToast("خطأ أثناء حفظ الفصل: " + e.message, "error"); 
+    }
 });
 
 document.getElementById('addSubjectBtn')?.addEventListener('click', async () => {
     const subjectInput = document.getElementById('newSubjectName');
     const subjectName = subjectInput.value.trim();
-    if (!subjectName) return showToast("برجاء إدخال اسم المادة أولاً", "error");
+    if (!subjectName) return showToast("برجاء إدخال اسم المادة أولاً", "warning");
     try {
         await setDoc(doc(db, "subjects", subjectName), { name: subjectName });
-        showToast(`🎉 تم تثبيت المادة (${subjectName}) بنجاح!`);
+        showToast(`🎉 تم تثبيت المادة (${subjectName}) بنجاح!`, "success");
         subjectInput.value = "";
         await loadAdminDynamicData();
-    } catch (e) { showToast("خطأ أثناء حفظ المادة: " + e.message, "error"); }
+    } catch (e) { 
+        showToast("خطأ أثناء حفظ المادة: " + e.message, "error"); 
+    }
 });
 
 // ==========================================
@@ -541,7 +570,9 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
     const nameInput = document.getElementById('stuName');
     const classInput = document.getElementById('stuClass');
 
-    if (!idInput.value || !nameInput.value || !classInput.value) return showToast("برجاء إدخال البيانات كاملة وتحديد الفصل", "error");
+    if (!idInput.value || !nameInput.value || !classInput.value) {
+        return showToast("برجاء إدخال البيانات كاملة وتحديد الفصل المطلوب", "warning");
+    }
 
     const targetId = idInput.value.trim();
     const targetName = nameInput.value.trim();
@@ -553,7 +584,7 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
                 name: targetName,
                 class: targetClass
             });
-            showToast(`🎉 تم تحديث بيانات الطالب بنجاح!`);
+            showToast(`🎉 تم تحديث بيانات الطالب بنجاح!`, "success");
 
             editingStudentId = null;
             idInput.disabled = false;
@@ -563,12 +594,14 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
 
             const submitBtn = document.getElementById('addStudentBtn');
             if (submitBtn) {
-                submitBtn.innerHTML = "حفظ البيانات وإنشاء الـ Collections";
+                submitBtn.innerHTML = "حفظ البيانات وإنشاء الـ ملف الأكاديمي للطالب";
                 submitBtn.style.background = "";
             }
             loadStudentsData("init");
             renderStudentsChart();
-        } catch (error) { showToast("❌ خطأ في السيرفر أثناء التعديل: " + error.message, "error"); }
+        } catch (error) { 
+            showToast("خطأ في السيرفر أثناء تعديل الطالب: " + error.message, "error"); 
+        }
         return;
     }
 
@@ -588,13 +621,15 @@ document.getElementById('addStudentBtn')?.addEventListener('click', async () => 
             ratings: {}
         });
 
-        showToast("🎉 تم قيد الطالب في الفايربيز وتأسيس ملفه الأكاديمي بنجاح!");
+        showToast("🎉 تم قيد الطالب  وتأسيس ملفه الأكاديمي بنجاح!", "success");
         idInput.value = "";
         nameInput.value = "";
         classInput.value = "";
         loadStudentsData("init");
         renderStudentsChart();
-    } catch (error) { showToast("❌ فشل الحفظ: " + error.message, "error"); }
+    } catch (error) { 
+        showToast("فشل في حفظ سجل الطالب الجديد: " + error.message, "error"); 
+    }
 });
 
 // ==========================================
@@ -616,7 +651,7 @@ if (addTeacherForm) {
         const tSubjectsArray = Array.from(checkedSubjects).map(cb => cb.value);
 
         if (tClassesArray.length === 0 || tSubjectsArray.length === 0) {
-            return showToast("⚠️ يجب اختيار مادة واحدة وفصل واحد على الأقل للمعلم!", "error");
+            return showToast("⚠️ يجب اختيار مادة واحدة وفصل واحد على الأقل للمعلم!", "warning");
         }
 
         if (editingTeacherId) {
@@ -626,7 +661,7 @@ if (addTeacherForm) {
                     subject: tSubjectsArray,
                     class: tClassesArray
                 });
-                showToast(`🎉 تم تحديث بيانات المعلم بنجاح!`);
+                showToast(`🎉 تم تحديث بيانات المعلم بنجاح!`, "success");
 
                 editingTeacherId = null;
                 document.getElementById('teacherEmail').disabled = false;
@@ -644,7 +679,9 @@ if (addTeacherForm) {
                 addTeacherForm.reset();
                 loadTeachersData("init");
                 renderTeachersSubjectChart();
-            } catch (error) { showToast("❌ خطأ أثناء تحديث البيانات: " + error.message, "error"); }
+            } catch (error) { 
+                showToast("❌ خطأ أثناء تحديث البيانات: " + error.message, "error"); 
+            }
             return;
         }
 
@@ -665,11 +702,13 @@ if (addTeacherForm) {
             });
 
             await secondaryAuth.signOut();
-            showToast(`✅ تم تسجيل المعلم وتكريت حسابه بنجاح!`);
+            showToast(`🎉 تم تسجيل المعلم وتكريك حسابه بنجاح!`, "success");
             addTeacherForm.reset();
             loadTeachersData("init");
             renderTeachersSubjectChart();
-        } catch (error) { showToast("❌ حدث خطأ أثناء الحفظ: " + error.message, "error"); }
+        } catch (error) { 
+            showToast("❌ حدث خطأ أثناء إنشاء حساب المعلم: " + error.message, "error"); 
+        }
     });
 }
 
@@ -681,16 +720,20 @@ document.getElementById('saveGradeBtn')?.addEventListener('click', async () => {
     const subInput = document.getElementById('subject');
     const gradeInput = document.getElementById('grade');
 
-    if (!idInput.value || !subInput.value || !gradeInput.value) return showToast("برجاء تحديد كود الطالب، المادة والدرجة", "error");
+    if (!idInput.value || !subInput.value || !gradeInput.value) {
+        return showToast("برجاء تحديد كود الطالب، المادة والدرجة أولاً", "warning");
+    }
     try {
         const gradeVal = parseFloat(gradeInput.value);
         const updateData = {};
         updateData[`grades.${subInput.value}`] = gradeVal;
 
         await updateDoc(doc(db, "students", idInput.value), updateData);
-        showToast("تم رصد الدرجة بنجاح!");
+        showToast("🎉 تم رصد الدرجة بنجاح للأرشيف الأكاديمي!", "success");
         gradeInput.value = "";
-    } catch (e) { showToast("خطأ: " + e.message, "error"); }
+    } catch (e) { 
+        showToast("❌ فشل رصد الدرجة: " + e.message, "error"); 
+    }
 });
 
 // ==========================================
@@ -701,7 +744,9 @@ document.getElementById('saveViolationBtn')?.addEventListener('click', async () 
     const titleInput = document.getElementById('vTitle');
     const detailsInput = document.getElementById('vDetails');
 
-    if (!idInput.value || !titleInput.value) return showToast("برجاء إدخال كود الطالب وعنوان المخالفة", "error");
+    if (!idInput.value || !titleInput.value) {
+        return showToast("برجاء إدخال كود الطالب وعنوان المخالفة السلوكية", "warning");
+    }
     try {
         await updateDoc(doc(db, "students", idInput.value), {
             violations: arrayUnion({
@@ -710,11 +755,13 @@ document.getElementById('saveViolationBtn')?.addEventListener('click', async () 
                 date: new Date().toLocaleDateString()
             })
         });
-        showToast("تم تسجيل المخالفة بنجاح!");
+        showToast("⚠️ تم تسجيل المخالفة السلوكية في ملف الطالب بنجاح!", "success");
         titleInput.value = "";
         detailsInput.value = "";
         idInput.value = "";
-    } catch (e) { showToast("خطأ: " + e.message, "error"); }
+    } catch (e) { 
+        showToast("❌ فشل تسجيل المخالفة: " + e.message, "error"); 
+    }
 });
 
 // ==========================================
@@ -738,26 +785,26 @@ document.getElementById('getTop10Btn')?.addEventListener('click', async () => {
             top10.forEach((stu, idx) => {
                 tbody.innerHTML += `<tr><td>${idx + 1}</td><td>${stu.id}</td><td>${stu.name}</td><td>${stu.total} درجة</td></tr>`;
             });
-            showToast("تم تحديث قائمة الأوائل بنجاح!");
+            showToast("📊 تم استخراج وتحديث قائمة أوائل الطلاب بنجاح!", "success");
         }
-    } catch (e) { showToast("خطأ في جلب الدفعة: " + e.message, "error"); }
+    } catch (e) { 
+        showToast("❌ خطأ أثناء تجميع كشف الأوائل: " + e.message, "error"); 
+    }
 });
 
-
-// دالة لإنشاء وتحديث الرسم البياني بشكل مستقل وصحيح ١٠٠٪
+// ==========================================
+// 6. الرسوم البيانية (Charts)
+// ==========================================
 async function renderStudentsChart() {
     const canvas = document.getElementById('studentsChart');
     if (!canvas) return;
 
     try {
-        // 🔥 الحل هنا: جلب كولكشن الطلاب بالكامل بشكل مباشر بدون أي شروط باجينيشن أو ليميت
         const querySnapshot = await getDocs(collection(db, "students"));
-        
         const classCounts = {};
 
         querySnapshot.forEach((doc) => {
             const studentData = doc.data();
-            // تأكدي من كتابة الحقل بنفس الطريقة (class)
             const className = `فصل ${studentData.class || 'غير محدد'}`;
             classCounts[className] = (classCounts[className] || 0) + 1;
         });
@@ -765,12 +812,10 @@ async function renderStudentsChart() {
         const labels = Object.keys(classCounts);
         const dataValues = Object.values(classCounts);
 
-        // تدمير التشارت القديم لمنع تداخل البيانات والـ Glitches
         if (studentsChartInstance) {
             studentsChartInstance.destroy();
         }
 
-        // بناء الرسم البياني الجديد بالداتا الإجمالية الحقيقية
         studentsChartInstance = new Chart(canvas, {
             type: 'bar',
             data: {
@@ -805,16 +850,15 @@ async function renderStudentsChart() {
 
     } catch (e) {
         console.error("خطأ أثناء تحديث الرسم البياني الإجمالي:", e);
+        showToast("فشل تحديث الرسم البياني لتوزيع الطلاب", "error");
     }
 }
 
-// دالة لإنشاء وتحديث الرسم البياني الدائري لتخصصات المعلمين
 async function renderTeachersSubjectChart() {
     const canvas = document.getElementById('teachersSubjectChart');
     if (!canvas) return;
 
     try {
-        // جلب المعلمين فقط من كولكشن users
         const q = query(collection(db, "users"), where("role", "==", "teacher"));
         const querySnapshot = await getDocs(q);
 
@@ -824,7 +868,6 @@ async function renderTeachersSubjectChart() {
             const userData = docSnap.data();
             const subjects = userData.subject;
 
-            // بما إن المادة ممكن تكون Array (مجموعة مواد) أو نص مفرد
             if (Array.isArray(subjects)) {
                 subjects.forEach(sub => {
                     if (sub) subjectCounts[sub] = (subjectCounts[sub] || 0) + 1;
@@ -837,19 +880,16 @@ async function renderTeachersSubjectChart() {
         const labels = Object.keys(subjectCounts);
         const dataValues = Object.values(subjectCounts);
 
-        // تدمير النسخة القديمة لتجنب الـ Glitches والتداخل عند التحديث اللحظي
         if (teachersChartInstance) {
             teachersChartInstance.destroy();
         }
 
-        // بناء الـ Doughnut Chart (أشيك وأرق من الـ Pie الكاملة)
         teachersChartInstance = new Chart(canvas, {
-            type: 'doughnut', // تقدري تخليها 'pie' لو حباها مصمتة بالكامل
+            type: 'doughnut',
             data: {
                 labels: labels,
                 datasets: [{
                     data: dataValues,
-                    // مجموعة ألوان مبهجة ومتناسقة وتلقط العين
                     backgroundColor: [
                         '#2563eb', '#10b981', '#f59e0b', '#ef4444', 
                         '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6'
@@ -864,7 +904,7 @@ async function renderTeachersSubjectChart() {
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'right', // يظهر قائمة المواد على اليسار/اليمين بشكل منظم
+                        position: 'right',
                         labels: {
                             font: { family: 'Cairo', size: 11 },
                             boxWidth: 12
@@ -876,5 +916,6 @@ async function renderTeachersSubjectChart() {
 
     } catch (e) {
         console.error("خطأ أثناء إنشاء رسم بياني المواد:", e);
+        showToast("فشل تحديث رسم بياني تخصصات المعلمين", "error");
     }
 }
