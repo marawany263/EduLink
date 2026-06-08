@@ -24,7 +24,7 @@ body, html {
     padding: 20px;
     
     /* ربط خلفية تكنولوجية تعليمية ذكية مدمجة مع طبقة حماية لونية زرقاء مريحة للعين */
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.88) 0%, rgba(15, 23, 42, 0.93) 100%), 
+    background: linear-gradient(135deg, rgba(78, 109, 194, 0.88) 0%, rgba(15, 23, 42, 0.93) 100%), 
                 url('../img/auth-bg.jfif') no-repeat center center;
     background-size: cover;
     background-attachment: fixed;
