@@ -224,3 +224,24 @@ button:active {
         width: 100%;
     }
 }
+
+/* --- تنسيق رابط التنقل بين الصفحات --- */
+.auth-switch {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #64748b; /* لون رمادي هادئ ومتناسق */
+    text-align: center;
+}
+
+.auth-switch a {
+    color: #2563eb; /* نفس اللون الأزرق الأساسي للمشروع */
+    text-decoration: none;
+    font-weight: 700; /* خط سميك وواضح للرابط */
+    margin-right: 5px;
+    transition: color 0.2s ease;
+}
+
+.auth-switch a:hover {
+    color: #1d4ed8; /* درجة أغمق عند مرور الماوس */
+    text-decoration: underline; /* خط تحت الكلام للحركة الجمالية */
+}
